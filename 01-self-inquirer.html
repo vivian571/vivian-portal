@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Self-Inquirer · 拆掉假性学会</title>
+<style>
+  :root{
+    --bg:#0d0e12; --panel:#16181f; --panel-2:#1c1f29; --border:#262a36;
+    --text:#e6e8ee; --muted:#8a90a2; --muted-2:#5c6273;
+    --accent-a:#ff7a45; --accent-b:#ff4d4f;
+    --ok:#3fb950; --warn:#d29922; --danger:#f85149;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:32px 20px 80px}
+  header.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .logo{font:700 26px/1 var(--mono);letter-spacing:.5px;color:var(--accent-a)}
+  .tag{color:var(--muted);font-size:13px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 24px}
+  .sub b{color:var(--text);font-weight:600}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+  .label{font:600 12px/1 var(--mono);text-transform:uppercase;letter-spacing:1px;color:var(--accent-a)}
+
+  /* topic input */
+  .topic-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+  input[type=text]{
+    flex:1;min-width:220px;background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    border-radius:9px;padding:11px 13px;font-size:15px;outline:none
+  }
+  input[type=text]:focus{border-color:var(--accent-a)}
+  button{
+    border:0;border-radius:9px;padding:11px 16px;font-size:14px;font-weight:600;cursor:pointer;
+    background:var(--accent-a);color:#1a0e08;
+    transition:opacity .15s,transform .05s
+  }
+  button:hover{opacity:.92}
+  button:active{transform:translateY(1px)}
+  button.ghost{background:transparent;border:1px solid var(--border);color:var(--muted);font-weight:500}
+  button.ghost:hover{color:var(--text);border-color:var(--muted-2)}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .preset-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer}
+  .preset-btn:hover{color:var(--text);border-color:var(--accent-a)}
+  .hint-inline{color:var(--muted-2);font-size:12px;margin-top:8px}
+
+  /* dimension cards */
+  .dim{border:1px solid var(--border);border-radius:12px;background:var(--panel);margin-bottom:12px;overflow:hidden}
+  .dim-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+  .dim-idx{font:700 13px var(--mono);color:var(--muted-2);min-width:22px}
+  .dim-title{font-weight:600;flex:1}
+  .dim-prompt{color:var(--muted);font-size:13px;margin-top:3px}
+  .dim-chev{color:var(--muted-2);transition:transform .2s;font-size:12px}
+  .dim.open .dim-chev{transform:rotate(90deg)}
+  .dim-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border)}
+  .dim.open .dim-body{display:block}
+  .dim-body textarea{
+    width:100%;min-height:96px;background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    border-radius:9px;padding:11px 13px;font-size:14px;line-height:1.6;resize:vertical;outline:none;margin-top:12px;
+    font-family:inherit
+  }
+  .dim-body textarea:focus{border-color:var(--accent-a)}
+  .rubric{margin-top:12px;border-left:2px solid var(--border);padding-left:12px}
+  .rubric .rh{font-size:12px;color:var(--muted-2);margin-bottom:6px;letter-spacing:.5px}
+  .rub{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);margin:5px 0;cursor:pointer}
+  .rub input{margin-top:3px;accent-color:var(--accent-a)}
+  .exhint{margin-top:10px;font-size:12.5px;color:var(--muted);background:var(--panel-2);border:1px dashed var(--border);
+    border-radius:8px;padding:9px 11px}
+  .exhint b{color:var(--accent-a);font-weight:600}
+
+  /* radar / blindspot */
+  .radar-grid{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+  @media(max-width:620px){.radar-grid{grid-template-columns:1fr}}
+  .blinds .brow{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--border)}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .brow .bn{color:var(--muted);flex:1}
+  .brow .bs{font:600 12px var(--mono)}
+  .score-big{font:700 34px var(--mono);color:var(--accent-a)}
+  .verdict{font-size:13px;color:var(--muted);margin-top:2px}
+  .legend{display:flex;gap:14px;font-size:12px;color:var(--muted-2);margin-top:10px;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:5px}
+
+  /* llm panel */
+  details.llm{margin-top:8px}
+  details.llm summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none}
+  details.llm summary::-webkit-details-marker{display:none}
+  details.llm summary:before{content:"▸ ";color:var(--muted-2)}
+  details.llm[open] summary:before{content:"▾ "}
+  .llm-body{margin-top:12px}
+  .llm-body .field{margin-bottom:10px}
+  .llm-body label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .llm-out{margin-top:12px;white-space:pre-wrap;background:var(--panel-2);border:1px solid var(--border);
+    border-radius:9px;padding:12px 14px;font-size:13.5px;line-height:1.7;min-height:40px;color:var(--text)}
+  .llm-out.empty{color:var(--muted-2)}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .foot{margin-top:30px;color:var(--muted-2);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="logo">Self-Inquirer</span>
+    <span class="tag">// 拆掉假性学会 · 费曼压力自检</span>
+  </header>
+  <p class="sub">学完一个概念，3 分钟测它到底有没有进脑子。<b>不靠 AI 当老好人评委</b>——靠你亲手填的空白、含糊词和翻车边界暴露盲区。</p>
+
+  <div class="card">
+    <span class="label">STEP 1 · 输入主题</span>
+    <div class="topic-row">
+      <input id="topic" type="text" placeholder="例如：RAG 文本切分 / Python 异步 / 向量数据库 / 递归" />
+      <button id="genBtn">生成压力测试</button>
+      <button class="ghost" id="demoBtn">载入示例作答</button>
+    </div>
+    <div class="presets">
+      <span style="font-size:12px;color:var(--muted-2);align-self:center">快速体验主题：</span>
+      <button class="preset-btn" data-t="RAG 检索增强生成">RAG 检索增强生成</button>
+      <button class="preset-btn" data-t="Python 异步协程 asyncio">Python 异步协程</button>
+      <button class="preset-btn" data-t="Attention 注意力机制">Attention 注意力机制</button>
+      <button class="preset-btn" data-t="Git Rebase 与 Merge">Git Rebase 与 Merge</button>
+    </div>
+    <div class="hint-inline">纯前端运行，作答自动存在本地浏览器（LocalStorage），刷新不丢，零上传。</div>
+  </div>
+
+  <div id="dims"></div>
+
+  <div class="card" id="radarCard" style="display:none">
+    <span class="label">STEP 2 · 盲区雷达</span>
+    <div class="radar-grid" style="margin-top:12px">
+      <div>
+        <div class="score-big" id="scoreBig">—</div>
+        <div class="verdict" id="verdict"></div>
+        <div class="toolbar">
+          <button id="scanBtn">扫描盲区</button>
+          <button class="ghost" id="expBtn">导出 JSON</button>
+          <button class="ghost" id="resetBtn">清空</button>
+        </div>
+        <div class="legend">
+          <span><i class="dot" style="background:var(--ok)"></i>扎实</span>
+          <span><i class="dot" style="background:var(--warn)"></i>含糊/偏短</span>
+          <span><i class="dot" style="background:var(--danger)"></i>空白/假性</span>
+        </div>
+      </div>
+      <div class="blinds">
+        <svg id="radar" viewBox="0 0 260 260" width="100%" height="260" aria-label="盲区雷达图"></svg>
+        <div id="blindList"></div>
+      </div>
+    </div>
+
+    <details class="llm">
+      <summary>可选 · 让 AI 当“严格拷问官”（默认关闭，不强制 API）</summary>
+      <div class="llm-body">
+        <div class="field">
+          <label>API Base URL（OpenAI 兼容，如 https://api.openai.com/v1）</label>
+          <input id="llmBase" type="text" placeholder="https://api.openai.com/v1" />
+        </div>
+        <div class="field">
+          <label>模型名（如 gpt-4o-mini / deepseek-chat）</label>
+          <input id="llmModel" type="text" placeholder="gpt-4o-mini" />
+        </div>
+        <div class="field">
+          <label>API Key（仅存你本地浏览器，直连你填的接口，不经任何第三方）</label>
+          <input id="llmKey" type="text" placeholder="sk-..." />
+        </div>
+        <div class="toolbar">
+          <button id="probeBtn">让 AI 出 1–2 个追问陷阱</button>
+        </div>
+        <div class="llm-out empty" id="llmOut">填好上面三项后点击上方按钮。AI 不会被允许夸你——它只负责揪你作答里的漏洞。</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="foot">Self-Inquirer · 源码来自 vivian571/self-inquirer · 极简费曼自检工具 · 零依赖 · 零上传</div>
+</div>
+
+<script>
+const VAGUE = ['大概','应该','可能','差不多','也许','感觉','一般来说','通常','基本','似乎','大概是','不确定','记不太清','好像','估计','大抵','或许','说不清'];
+
+const DIMENSIONS = [
+  { key:'define', title:'一句话定义', prompt:'用最朴素的词，别用原词解释原词。',
+    rubric:['我没用“它是一种…的机制/系统/方法”这种套话','我写的句子一个外行能读懂'],
+    hint:'反例：「RAG 是一种检索增强生成技术」——这是同义反复。正例：「你问问题前，它先去资料库翻出相关段落，再带着这些段落去问模型。」' },
+  { key:'mvp', title:'MVP 实操', prompt:'你最近一次亲手跑通它的用例是什么？贴步骤或最小代码。',
+    rubric:['我写的是真实做过的，不是“应该能”','我写出了至少一个具体输入和预期输出'],
+    hint:'逼出“假性学会”的关键维度。写不出具体跑通过的东西，就是没学会。' },
+  { key:'tradeoff', title:'Trade-off 权衡', prompt:'它和替代方案比，什么场景选它、什么场景不选？',
+    rubric:['我明确写了“不选它”的场景','我对比了至少一个具体替代方案'],
+    hint:'例：「小数据量用全文检索就够，上向量库反而增加维护成本；只有语义模糊匹配才值得。」' },
+  { key:'edge', title:'翻车边界', prompt:'举一个它绝对会出错的输入 / 条件 / 规模。',
+    rubric:['我举的例子是具体的，不是“要注意边界”','这个边界是真会崩，不是小瑕疵'],
+    hint:'例：「切分 chunk 太大→上下文被稀释；太小→语义被切断。超过 50 页 PDF 且表格多时准确率骤降。」' },
+  { key:'feynman', title:'费曼翻译', prompt:'用教 8 岁孩子的方式讲一遍，且不准出现 ≥3 个 jargon。',
+    rubric:['全文 jargon 少于 3 个','我用了生活类比，不是术语翻译'],
+    hint:'把“递归”讲成「俄罗斯套娃：打开一个盒子，里面还是同样的盒子，直到最小的空盒」就是合格费曼。' },
+];
+
+const STORE_KEY = 'self_inquirer_v1';
+let state = { topic:'', answers:{}, rubric:{} };
+
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(STORE_KEY)); if(s) state = Object.assign(state, s); }catch(e){}
+}
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function $(id){ return document.getElementById(id); }
+
+function renderDims(){
+  const wrap = $('dims'); wrap.innerHTML = '';
+  DIMENSIONS.forEach((d,i)=>{
+    const ans = state.answers[d.key] || '';
+    const rub = state.rubric[d.key] || d.rubric.map(()=>false);
+    const el = document.createElement('div');
+    el.className = 'dim' + (i === 0 ? ' open' : '');
+    el.innerHTML = `
+      <div class="dim-head">
+        <span class="dim-idx">0${i+1}</span>
+        <div style="flex:1">
+          <div class="dim-title">${d.title}</div>
+          <div class="dim-prompt">${d._prompt||d.prompt}</div>
+        </div>
+        <span class="dim-chev">▶</span>
+      </div>
+      <div class="dim-body">
+        <textarea data-k="${d.key}" placeholder="在这里作答（口语/中文都行，重点是具体）">${ans.replace(/</g,'&lt;')}</textarea>
+        <div class="rubric">
+          <div class="rh">诚实自勾 · 全勾上才算这一维过关</div>
+          ${d.rubric.map((r,j)=>`<label class="rub"><input type="checkbox" data-k="${d.key}" data-j="${j}" ${rub[j]?'checked':''}><span>${r}</span></label>`).join('')}
+        </div>
+        <div class="exhint"><b>提示：</b>${d.hint}</div>
+      </div>`;
+    el.querySelector('.dim-head').addEventListener('click',()=>el.classList.toggle('open'));
+    el.querySelector('textarea').addEventListener('input',e=>{
+      state.answers[d.key]=e.target.value; save();
+    });
+    el.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+      cb.addEventListener('change',e=>{
+        const k=e.target.dataset.k, j=+e.target.dataset.j;
+        if(!state.rubric[k]) state.rubric[k]=d.rubric.map(()=>false);
+        state.rubric[k][j]=e.target.checked; save();
+      });
+    });
+    wrap.appendChild(el);
+  });
+}
+
+function genCards(){
+  const t = $('topic').value.trim();
+  if(!t){ $('topic').focus(); return; }
+  state.topic = t;
+  DIMENSIONS.forEach(d=>{
+    d._prompt = d.prompt.replace(/它/g, `「${t}」`);
+  });
+  renderDims();
+  $('radarCard').style.display='block';
+  save();
+  scan();
+}
+
+function loadDemo(){
+  $('topic').value = 'RAG 检索增强生成';
+  state.topic = 'RAG 检索增强生成';
+  state.answers = {
+    define: '在让大模型回答问题之前，先去本地文档库里搜出最相关的几段话，把这几段话塞进提问词里让模型看着参考资料回答，防止它瞎编。',
+    mvp: '上周用 ChromaDB + BGE-M3 embedding 切分了 30 篇公司内部技术规范 Markdown，按 500 字符 chunk、50 字符 overlap 入库，输入“报销审批超时怎么办”返回 Top-3 段落并生成准确步骤。',
+    tradeoff: '应该比全量微调便宜，大概适合知识频繁变动的场景吧。',
+    edge: '当跨多页复杂合并单元格的 PDF 表格被硬切分后，表头和数值分离，检索出来的片段丢失上下文导致回答完全张冠李戴。',
+    feynman: ''
+  };
+  state.rubric = {
+    define: [true, true],
+    mvp: [true, true],
+    tradeoff: [false, true],
+    edge: [true, true],
+    feynman: [false, false]
+  };
+  genCards();
+}
+
+function scoreDim(d){
+  const a = (state.answers[d.key]||'').trim();
+  const rub = state.rubric[d.key] || [];
+  const rubOk = rub.length && rub.every(Boolean);
+  const hasVague = VAGUE.some(v=>a.includes(v));
+  if(a.length < 10) return {score:0, status:'danger', msg:'空白 / 几乎没写'};
+  if(a.length < 40 || hasVague) return {score:45, status:'warn', msg: hasVague?'出现了含糊词（大概/应该/可能…）':'作答过短'};
+  if(!rubOk) return {score:70, status:'warn', msg:'自勾项未全过'};
+  return {score:100, status:'ok', msg:'扎实'};
+}
+
+function scan(){
+  const res = DIMENSIONS.map(d=>({d, ...scoreDim(d)}));
+  const avg = Math.round(res.reduce((s,r)=>s+r.score,0)/res.length);
+  $('scoreBig').textContent = avg + '%';
+  const blind = res.filter(r=>r.status!=='ok');
+  let verdict;
+  if(blind.length===0) verdict='五维全过。但别松懈——能写出来≠能讲清楚，拿去教个人试试。';
+  else if(avg<45) verdict='高度疑似假性学会：多个维度空白或含糊。别急着下一个主题。';
+  else verdict=`${blind.length} 个维度露出盲区，已标红。先补这些，别贪多。`;
+  $('verdict').textContent = verdict;
+
+  const cx=130, cy=130, R=95;
+  const n=res.length;
+  const pt=(i,r)=>{ const ang=-Math.PI/2 + i*2*Math.PI/n; return [cx+r*Math.cos(ang), cy+r*Math.sin(ang)]; };
+  let svg='';
+  [0.25,0.5,0.75,1].forEach(f=>{
+    const pts=res.map((_,i)=>pt(i,R*f).join(',')).join(' ');
+    svg+=`<polygon points="${pts}" fill="none" stroke="#262a36" stroke-width="1"/>`;
+  });
+  res.forEach((r,i)=>{
+    const [x,y]=pt(i,R);
+    svg+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#262a36" stroke-width="1"/>`;
+    const [lx,ly]=pt(i,R+18);
+    svg+=`<text x="${lx}" y="${ly}" fill="#8a90a2" font-size="12" text-anchor="middle" dominant-baseline="middle">${r.d.title}</text>`;
+  });
+  const dpts=res.map((r,i)=>pt(i,R*r.score/100).join(',')).join(' ');
+  const col = avg<45?'#f85149':(avg<80?'#d29922':'#3fb950');
+  svg+=`<polygon points="${dpts}" fill="${col}22" stroke="${col}" stroke-width="2"/>`;
+  res.forEach((r,i)=>{ const [x,y]=pt(i,R*r.score/100); svg+=`<circle cx="${x}" cy="${y}" r="3" fill="${col}"/>`; });
+  $('radar').innerHTML=svg;
+
+  $('blindList').innerHTML = res.map(r=>{
+    const c = r.status==='ok'?'var(--ok)':(r.status==='warn'?'var(--warn)':'var(--danger)');
+    return `<div class="brow"><i class="dot" style="background:${c}"></i><span class="bn">${r.d.title}</span><span class="bs" style="color:${c}">${r.msg}</span></div>`;
+  }).join('');
+}
+
+async function probe(){
+  const base=$('llmBase').value.trim(), model=$('llmModel').value.trim(), key=$('llmKey').value.trim();
+  const out=$('llmOut');
+  if(!base||!model||!key){ out.classList.remove('empty'); out.textContent='三项都要填：Base / 模型 / Key。'; return; }
+  const answered = DIMENSIONS.map(d=>`【${d.title}】${(state.answers[d.key]||'（未作答）').trim()||'（空白）'}`).join('\n');
+  const sys = `你是严格的费曼拷问官。用户刚对一个技术概念做了自学自检。你的任务：基于用户的作答，找出逻辑漏洞、含糊处、未覆盖的边界，并出 1–2 个能瞬间戳破“假性学会”的追问陷阱。规则：1) 绝不夸用户；2) 不写“你理解得不错”之类客套；3) 直接点出哪句话在糊弄、为什么；4) 追问要具体、可操作，逼用户说出真实跑通过的东西。`;
+  const user = `主题：${state.topic}\n\n用户作答：\n${answered}\n\n请给出尖锐的漏洞点评 + 1–2 个追问陷阱。`;
+  out.classList.remove('empty'); out.textContent='拷问官思考中…';
+  try{
+    const r = await fetch(base.replace(/\/$/,'')+'/chat/completions',{
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model, messages:[{role:'system',content:sys},{role:'user',content:user}], temperature:0.3})
+    });
+    if(!r.ok){ out.textContent='接口返回 '+r.status+'：'+(await r.text()).slice(0,300); return; }
+    const j = await r.json();
+    out.textContent = (j.choices&&j.choices[0]&&j.choices[0].message.content)||'(空响应)';
+  }catch(e){ out.textContent='请求失败：'+e.message+'。检查 Base/Key/网络。'; }
+}
+
+function exp(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='self-inquirer-'+Date.now()+'.json'; a.click();
+}
+function reset(){
+  state={topic:'',answers:{},rubric:{}}; save();
+  $('topic').value=''; $('dims').innerHTML=''; $('radarCard').style.display='none';
+}
+
+load();
+$('genBtn').addEventListener('click',genCards);
+$('demoBtn').addEventListener('click',loadDemo);
+document.querySelectorAll('.preset-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{ $('topic').value=btn.dataset.t; genCards(); });
+});
+$('topic').addEventListener('keydown',e=>{ if(e.key==='Enter') genCards(); });
+$('scanBtn').addEventListener('click',scan);
+$('expBtn').addEventListener('click',exp);
+$('resetBtn').addEventListener('click',reset);
+$('probeBtn').addEventListener('click',probe);
+if(state.topic){ $('topic').value=state.topic; genCards(); } else { loadDemo(); }
+</script>
+</body>
+</html>

@@ -1,0 +1,2815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>一人公司 AI 智能体驱动开发流程 2.0 看板</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="基于第一性原理与多智能体协同（Agentic Workflow）的本地优先独立开发 2.0 工作流辅助看板。包含 PRD 2.0 在线生成器、智能体 Prompt 生成器、EDM 歌词制作、数字人格调试沙盒与变现生死决策判定系统。">
+  <!-- Fonts -->
+  
+  
+  
+  <!-- Inline theme check script to prevent flash of light theme -->
+  <meta name="color-scheme" content="dark">
+  <script>
+    {
+      const colorScheme = localStorage.getItem("color-scheme") || "dark";
+      document.querySelector('meta[name="color-scheme"]').content = colorScheme;
+    }
+  </script>
+<style>
+/* --- src/styles/main.css --- */
+:root {
+  /* Colors */
+  --bg-main: #0B0F19;
+  --bg-card: rgba(15, 23, 42, 0.45);
+  --bg-card-hover: rgba(15, 23, 42, 0.65);
+  --bg-input: rgba(30, 41, 59, 0.5);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.16);
+
+  --color-primary: #6366F1;   /* Indigo */
+  --color-secondary: #06B6D4; /* Cyan */
+  --color-accent: #8B5CF6;    /* Violet */
+  --color-success: #10B981;   /* Emerald */
+  --color-error: #F43F5E;     /* Rose */
+  --color-warning: #F59E0B;   /* Amber */
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  --grad-primary: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  --grad-cyan: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+  --grad-success: linear-gradient(135deg, #10B981, #059669);
+  --grad-error: linear-gradient(135deg, #F43F5E, #E11D48);
+
+  --font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Scrollbar standard properties */
+  scrollbar-color: var(--color-primary) var(--bg-main);
+  scrollbar-width: thin;
+  color-scheme: dark;
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+/* Custom Scrollbar fallback for older WebKit browsers */
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-main);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.6);
+  }
+}
+
+/* Layout Grid */
+.app-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 1.5rem;
+  min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+  .app-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Header & Sidebar */
+header {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+}
+
+.brand-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  background: linear-gradient(to right, #FFF, var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Sidebar Wrapper */
+.sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: sticky;
+  top: 1.5rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+/* Form Styles */
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  transition: var(--transition-fast);
+  outline: none;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+  background: rgba(30, 41, 59, 0.7);
+}
+
+/* Table Style */
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.matrix-table th {
+  background: rgba(15, 23, 42, 0.6);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.matrix-table td {
+  padding: 0.75rem 1rem;
+  background: rgba(15, 23, 42, 0.3);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.85rem;
+}
+
+.matrix-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Markdown Container */
+.markdown-body {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #FFF;
+}
+
+.markdown-body h1 { font-size: 1.6rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+.markdown-body h2 { font-size: 1.3rem; }
+.markdown-body h3 { font-size: 1.1rem; }
+
+.markdown-body p {
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.markdown-body li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-body code {
+  background: rgba(30, 41, 59, 0.8);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.85rem;
+  color: var(--color-secondary);
+}
+
+.markdown-body pre {
+  background: #05070C !important;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.75rem;
+}
+
+.markdown-body th {
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text-primary);
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.15); }
+  50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.35); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide {
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* --- src/styles/glass.css --- */
+
+/* Glassmorphism Panel */
+.glass-panel {
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.glass-panel:hover {
+  border-color: var(--border-hover);
+}
+
+/* Specific glowing panels */
+.glass-panel.glowing-primary {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.1);
+}
+
+/* Glassmorphic buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-family: var(--font-family);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  text-decoration: none;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.btn-primary {
+  background: var(--grad-primary);
+  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+  filter: brightness(1.1);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-hover);
+}
+
+.btn-danger {
+  background: var(--grad-error);
+  box-shadow: 0 4px 14px 0 rgba(244, 63, 94, 0.3);
+}
+
+.btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px 0 rgba(244, 63, 94, 0.5);
+  filter: brightness(1.1);
+}
+
+.btn-success {
+  background: var(--grad-success);
+  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.5);
+  filter: brightness(1.1);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+}
+
+/* Step Flow nodes list */
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.step-node {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.step-node:hover {
+  background: rgba(15, 23, 42, 0.5);
+  border-color: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
+}
+
+.step-node.active {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: inset 0 0 12px rgba(99, 102, 241, 0.1);
+}
+
+.step-node.active .step-num {
+  background: var(--grad-primary);
+  color: #FFF;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.step-node.completed .step-num {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.step-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-grow: 1;
+}
+
+.step-node.active .step-label {
+  color: var(--text-primary);
+}
+
+.step-status-icon {
+  font-size: 0.85rem;
+  opacity: 0.5;
+}
+
+.step-node.completed .step-status-icon {
+  color: var(--color-success);
+  opacity: 1;
+}
+
+/* Timeline Widget (Sprint Tracker) */
+.timeline-card {
+  padding: 1.25rem;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.timeline-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.timeline-percentage {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--grad-cyan);
+  width: 0%;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.35rem;
+}
+
+.day-cell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.day-cell:hover {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.day-cell.completed {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.day-num {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.day-cell.completed .day-num {
+  color: var(--color-success);
+}
+
+.day-label {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 0.1rem;
+}
+
+/* Modals/Dialogs styling with light-dismiss */
+dialog {
+  margin: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background-color: #0E131F;
+  color: var(--text-primary);
+  max-width: 600px;
+  width: calc(100% - 2rem);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  padding: 1.75rem;
+  outline: none;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+dialog::backdrop {
+  background-color: rgba(5, 7, 12, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.dialog-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.dialog-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Steps Display Panel */
+.panel-title-area {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+.panel-step-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.panel-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Details and helper text */
+.step-description {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.step-meta {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Copy card */
+.copy-card {
+  background: rgba(5, 7, 12, 0.4);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.copy-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.copy-card-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+}
+
+.copy-card-pre {
+  background: #05070C;
+  padding: 0.75rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 250px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* Forms layout inside panels */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+}
+
+/* Tab buttons for sub-actions */
+.tab-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.4rem 0.8rem;
+  font-family: var(--font-family);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tab-btn.active {
+  color: var(--color-primary);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+/* Suno Song Generator layout */
+.song-lyrics-output {
+  min-height: 200px;
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  background: #05070C;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+/* Chat Simulator Sandbox */
+.chat-sandbox {
+  display: flex;
+  flex-direction: column;
+  height: 380px;
+  background: #070B14;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chat-bubble {
+  max-width: 80%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.chat-bubble.bot {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.chat-bubble.user {
+  background: var(--grad-primary);
+  color: #FFF;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.15);
+}
+
+.chat-bubble.system {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+  align-self: center;
+  font-size: 0.75rem;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.chat-input-area {
+  display: flex;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-top: 1px solid var(--border-color);
+  gap: 0.5rem;
+}
+
+.chat-input-area input {
+  flex-grow: 1;
+}
+
+/* Celebrations */
+.success-gate-panel {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.trophy-glow {
+  font-size: 3rem;
+  filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.5));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+</style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Area -->
+    <aside class="sidebar-panel">
+      <!-- Brand Header -->
+      <header>
+        <div class="brand-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary);">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          SOLO AGENCY 2.0
+        </div>
+        <div class="brand-subtitle">AI 智能体开发流程系统</div>
+      </header>
+
+      <!-- 14-Day Sprint Tracker -->
+      <section class="glass-panel timeline-card glowing-primary" id="sprint-section">
+        <div class="timeline-header">
+          <span class="timeline-title">14天 MVP 冲刺排期</span>
+          <span class="timeline-percentage" id="sprint-progress-percent">0%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="sprint-progress-fill"></div>
+        </div>
+        <div class="days-grid" id="days-grid">
+          <!-- Dynamically populated Days -->
+        </div>
+      </section>
+
+      <!-- 11-Step Node List -->
+      <section class="glass-panel">
+        <h3 class="timeline-title" style="margin-bottom: 0.5rem;">升级版 11 步执行手册</h3>
+        <div class="step-list" id="step-list">
+          <!-- Dynamically populated steps -->
+        </div>
+      </section>
+
+      <!-- Local Workspace Sync Manager -->
+      <section class="glass-panel" style="padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        <span class="timeline-title" style="font-size: 0.75rem;">数据主权与自治管理器</span>
+        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">
+          敏感数据永不无密上传。所有配置保存在本地 localStorage 中，您可以备份或恢复您的工作区。
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <button class="btn btn-secondary btn-sm" id="export-workspace-btn" title="导出项目配置文件 (JSON)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            备份项目
+          </button>
+          <button class="btn btn-secondary btn-sm" id="import-workspace-btn" title="导入已备份的项目 (JSON)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            载入备份
+          </button>
+          <input type="file" id="workspace-file-input" style="display: none;" accept=".json">
+        </div>
+        <button class="btn btn-danger btn-sm btn-secondary" id="reset-workspace-btn" style="width: 100%; border: 1px solid rgba(244, 63, 94, 0.2); background: rgba(244, 63, 94, 0.05); color: var(--color-error);">
+          重置并清空数据
+        </button>
+      </section>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="glass-panel glowing-primary animate-slide" id="main-panel" style="min-height: 500px; display: flex; flex-direction: column; justify-content: space-between;">
+      
+      <!-- Top Step Area -->
+      <div id="step-content-area">
+        <div class="panel-title-area">
+          <div class="panel-step-badge" id="step-badge-title">STEP 01</div>
+          <h2 class="panel-title" id="step-panel-title">需求洞察与交叉验证</h2>
+        </div>
+        
+        <!-- Step Specific Interactive Sub-panels -->
+        <div id="step-body-container">
+          <!-- Panels are loaded dynamically here -->
+        </div>
+      </div>
+
+      <!-- Bottom Step Navigation Row -->
+      <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 2rem; align-items: center;">
+        <button class="btn btn-secondary" id="prev-step-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          上一步
+        </button>
+        <span style="font-size: 0.85rem; color: var(--text-muted);" id="step-navigation-indicator">步骤 1/11</span>
+        <button class="btn btn-primary" id="next-step-btn">
+          下一步
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Day Timeline Modal (Template reused dynamically) -->
+  <dialog id="day-detail-dialog" closedby="any" aria-labelledby="dialog-day-title">
+    <div class="dialog-header">
+      <h3 class="dialog-title" id="dialog-day-title">Day 1 排期详情</h3>
+      <button class="dialog-close-btn" id="close-dialog-btn" aria-label="关闭">&times;</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <p style="font-size: 0.85rem; color: var(--text-secondary);" id="dialog-day-desc">
+        今日核心任务与安排。
+      </p>
+      <div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+        <h4 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-secondary);">任务检查清单</h4>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;" id="dialog-day-checklist-area">
+          <!-- Dynamically populated list with checkboxes -->
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Script Modules -->
+  <script>
+const architectPrompt = (prd) => `角色：资深全栈系统架构师
+任务：根据附带的 PRD 2.0，设计系统的目录结构与核心接口。
+
+项目名称：${prd.name || '未命名项目'}
+核心破局点：${prd.breakout || '无'}
+数据主权级别：${prd.sovereignty || '未设定'}
+
+系统架构与解耦规范：
+- 核心业务逻辑层（Core Engine）：${prd.coreEngine || '独立且不依赖具体 UI 框架'}
+- API 与授权管理层（Auth & API Gateway）：${prd.authGateway || '物理隔离重度计算与 UI 表现层'}
+- 数据持久层（Storage）：${prd.storage || '本地 SQLite/Hive 或私有受控后端'}
+
+核心功能矩阵：
+${(prd.functions && prd.functions.length > 0) ? prd.functions.map(f => `- 模块: ${f.name} | 输入输出: ${f.io} | 优先级: ${f.priority} | MVP包含: ${f.mvp ? '是' : '否'}`).join('\n') : '- 暂无核心功能模块'}
+
+约束：
+1. 必须将 API 授权逻辑与核心业务逻辑（如数据处理、算法模块）完全分离。
+2. 预留清晰的本地加密存储接口，适配数据主权与本地自治协议。
+3. 暂不编写具体业务实现，仅输出工程文件拓扑树与抽象接口类（Interface/Abstract Class）。`;
+
+const developerPrompt = (prd, activeModule) => `角色：资深严谨的底层开发工程师
+任务：实现上述架构师定义的 [${activeModule || '指定接口/模块'}]。
+
+项目名称：${prd.name || '未命名项目'}
+系统架构规范：
+- 核心业务逻辑层（Core Engine）：${prd.coreEngine || '不依赖 UI 框架'}
+- 数据持久层（Storage）：${prd.storage || '本地自治存储'}
+
+约束：
+1. 代码需高度模块化，禁止出现超过 50 行的复合函数。
+2. 包含详尽的中文注释，解释每一个边缘状态的处理。
+3. 涉及用户隐私的数据，必须调用本地加密模块，严格执行“数据永不无密上传”原则。`;
+
+const reviewerPrompt = (prd, activeModule) => `角色：硬核测试与代码审计专家
+任务：审查开发员编写的 [${activeModule || '指定模块'}] 代码。
+
+项目名称：${prd.name || '未命名项目'}
+检查项：
+1. 是否存在内存泄漏、未关闭的连接或异步泄露风险。
+2. 异常捕获是否完备，所有边界输入是否有完备的防御逻辑。
+3. 是否存在越权或隐私泄漏风险，验证数据处理流是否严格遵守“本地自治/数据永不无密上传”的原则。
+
+请针对上述代码输出详细的修改建议或直接给开发人员的重构提示词。`;
+
+const getEdmSongLyrics = (prdName, keywords, genre) => {
+  const cleanKeywords = keywords ? keywords.split(/[,，\s]+/).filter(Boolean) : ['Code', 'Agent', 'Local-First'];
+  const name = prdName || 'Solo Project';
+  const beatMap = {
+    'EDM Pop': '128 BPM, Electric Energy, Neon Lights',
+    'Synthwave': '110 BPM, Retro Cyber, Analog Warmth',
+    'Cyberpunk': '140 BPM, Dark Tech, Industrial Metal',
+    'Chiptune': '135 BPM, 8-Bit Retro, Playful Sine-waves'
+  };
+  const beat = beatMap[genre] || beatMap['EDM Pop'];
+
+  return `🎵 Style: ${genre} (${beat})
+🎵 Lyrics for: "${name}" EDM Anthem
+
+[Intro - Ambient synth pads swell, a digital heartbeat pulses]
+(01 01 01 01... local storage, clear the run...)
+(System status: Autonomous. Data sovereignty: Confirmed.)
+
+[Verse 1]
+Late in the night, the screen glows bright,
+No corporate meetings, no endless fights.
+A solo soldier in a digital land,
+With three smart agents at my command.
+Architect maps the nodes and the trees,
+Developer code flowing down like a breeze.
+Reviewer audits the boundary line,
+Local-first kingdom, this power is mine!
+
+[Chorus]
+Encrypt the key, let the data run free,
+But keep it on my drive, just for me!
+(No cleartext upload! No cloud control!)
+Solo creator, preserving the soul!
+Oh, agents are syncing, the engine is clean,
+The most beautiful app that you've ever seen!
+We rise from the basement, we shatter the chain,
+One-person empire, we rule the domain!
+
+[Drop - Heavy synthetic bass wobble, neon laser leads rising]
+DATA NEVER UPLOADED!
+(Wobble wobble wobble - Drop!)
+Local database! Encrypted space!
+(Beep beep - Cyber-synth solo!)
+
+[Verse 2]
+Keywords compile: ${cleanKeywords.map(k => `"${k}"`).join(', ')}!
+Building the future, local and free.
+Step eight is burning, the EDM beats,
+We don't buy ads, we just rule on the streets!
+Digital persona is chatting on-line,
+Geek spirit shining, the market is mine.
+If it fails in the sand, we recycle the core,
+Same architecture, we rebuild the door!
+
+[Bridge - Low frequency, quiet voice, code-like rhythm]
+If (verification == SUCCESS) {
+  Launch_to_the_market(ASO_Done);
+} else {
+  Keep_the_engine();
+  Pivot_the_skin();
+  Try_again();
+}
+
+[Chorus]
+Encrypt the key, let the data run free,
+But keep it on my drive, just for me!
+(No cleartext upload! No cloud control!)
+Solo creator, preserving the soul!
+Oh, agents are syncing, the engine is clean,
+The most beautiful app that you've ever seen!
+We rise from the basement, we shatter the chain,
+One-person empire, we rule the domain!
+
+[Outro - Fast chiptune arpeggios, volume fading]
+(01 01 01 01...)
+Data stays home.
+Agentic workflow complete.
+Build success.
+System sleep.`;
+};
+
+/* --- src/main.js --- */
+  architectPrompt, 
+  developerPrompt, 
+  reviewerPrompt, 
+  getEdmSongLyrics 
+} from './templates/prompts.js';
+
+// Dynamic library imports via ESM CDN
+
+let markedModule = {
+  parse: (txt) => {
+    if (!txt) return "";
+    return String(txt)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/^### (.*$)/gm, "<h3>$1</h3>")
+      .replace(/^## (.*$)/gm, "<h2>$1</h2>")
+      .replace(/^# (.*$)/gm, "<h1>$1</h1>")
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/
+/g, "<br>");
+  }
+};
+let confettiModule = () => {};
+async function loadLibraries() { return; }
+
+
+// Global Application State
+const DEFAULT_STATE = {
+  stepIndex: 0,
+  prd: {
+    name: '',
+    breakout: '',
+    sovereignty: '全本地存储 (Local-First)',
+    coreEngine: '核心算法与重计算模块，采用原生 JavaScript 编写，不与 UI 框架发生任何依赖绑定。',
+    authGateway: '采用本地混淆与离线认证机制，与 UI 层物理隔离，确保授权信息安全。',
+    storage: '采用本地 SQLite (Encrypted) 与 secure_storage，数据明文永不无密上传。',
+    functions: [
+      { name: '加密存储模块', io: '输入明文数据 -> 返回本地加密密文', priority: '高', mvp: true },
+      { name: '本地数据解密', io: '输入加密密文 -> 校验密钥并返回明文数据', priority: '高', mvp: true }
+    ],
+    freeLimit: '全本地基础功能免费，无限次使用。',
+    premiumBenefit: '高级定制版数字人设、私有数据分析仪表盘、极速加密本地同步。'
+  },
+  checklist: {}, // { "dayX-taskY": true }
+  lyrics: {
+    keywords: 'Local-First, Data Sovereignty, Agentic, Autonomy',
+    genre: 'EDM Pop',
+    result: ''
+  },
+  chatbot: {
+    persona: 'Indie Hacker',
+    messages: [
+      { sender: 'bot', text: '你好！我是你的项目的数字人格分身，已加载 [Indie Hacker] 预设。在社交平台上，我会用这种调性与用户沟通，快来测试我吧！' }
+    ]
+  },
+  testCases: {
+    offline: false,
+    storageFull: false,
+    keyInvalid: false,
+    badInput: false
+  },
+  retrospective: '',
+  failuresCount: 0,
+  succeeded: false
+};
+
+let state = { ...DEFAULT_STATE };
+
+// 14-Day Timeline Schedule Configuration
+const SPRINT_SCHEDULE = [
+  {
+    day: 1,
+    title: '需求与拆解',
+    desc: '全网需求洞察，使用第一性原理完成痛点验证，并开始撰写 PRD 2.0 草稿。',
+    tasks: [
+      { id: 'd1-t1', label: '扫描目标竞品的社交媒体痛点（隐私/多余授权）' },
+      { id: 'd1-t2', label: '使用 AI 提示词进行底层用户价值拆解' },
+      { id: 'd1-t3', label: '明确变现卡点与冷启动破局方案' }
+    ]
+  },
+  {
+    day: 2,
+    title: '功能边界定义',
+    desc: '深度解耦，明确 Core Engine 核心引擎、API Gateway 鉴权层与 UI 表现层物理隔离规范。',
+    tasks: [
+      { id: 'd2-t1', label: '梳理 MVP 功能，强行精简至 3 个以内' },
+      { id: 'd2-t2', label: '完成 PRD 2.0 基础拓扑与功能矩阵表格' }
+    ]
+  },
+  {
+    day: 3,
+    title: '架构与加密层',
+    desc: '配置架构师智能体，建立本地工程文件拓扑树，完成本地加密数据存储抽象接口设计。',
+    tasks: [
+      { id: 'd3-t1', label: '运行架构师 Prompt，建立系统的物理目录树' },
+      { id: 'd3-t2', label: '定义 Core Engine 的抽象接口类，预留本地加密接口' }
+    ]
+  },
+  {
+    day: 4,
+    title: 'UI表现层构建',
+    desc: '使用 AI 生成高保真 UI 静态原型，采用现代暗黑玻璃态美学，完成组件化拆分。',
+    tasks: [
+      { id: 'd4-t1', label: '输出高保真极简布局代码' },
+      { id: 'd4-t2', label: '拆分 UI 组件，为注入业务代码做好插槽准备' }
+    ]
+  },
+  {
+    day: 5,
+    title: 'UI表现层完成',
+    desc: '完成前端全部核心页面路由、基本微交互与空状态展示。',
+    tasks: [
+      { id: 'd5-t1', label: '跑通前端静态 UI 的所有交互链路' },
+      { id: 'd5-t2', label: '适配移动端与桌面端响应式布局' }
+    ]
+  },
+  {
+    day: 6,
+    title: '核心开发迭代',
+    desc: '配置开发-审计双智能体，正式开发 Core Engine 核心模块，实现防御性编程。',
+    tasks: [
+      { id: 'd6-t1', label: '运行 Developer Prompt 依次实现抽象接口' },
+      { id: 'd6-t2', label: '运行 Reviewer Prompt 审计代码内存泄漏与隐私风险' }
+    ]
+  },
+  {
+    day: 7,
+    title: '数据与存储层',
+    desc: '开发本地 SQLite/Hive 加密存储持久层，打通本地混淆机制，跑通完整加密数据读写流。',
+    tasks: [
+      { id: 'd7-t1', label: '实现本地数据混淆与密钥加密算法' },
+      { id: 'd7-t2', label: '完成 Core Engine 与数据存储层的底层绑定' }
+    ]
+  },
+  {
+    day: 8,
+    title: '核心业务流闭环',
+    desc: '联调 API 鉴权层与核心业务流，使应用能在断网/无第三方服务器依赖下完美运行闭环。',
+    tasks: [
+      { id: 'd8-t1', label: '连接 UI 表现层与核心业务逻辑层' },
+      { id: 'd8-t2', label: '进行前后端核心数据管道联调' }
+    ]
+  },
+  {
+    day: 9,
+    title: '沙盒边界测试',
+    desc: '编写自动化沙盒测试用例，强行模拟各种边界异常，确保极端条件下的系统鲁棒性。',
+    tasks: [
+      { id: 'd9-t1', label: '测试网络彻底断开下的离线运行能力' },
+      { id: 'd9-t2', label: '测试本地存储空间写满、加密密钥失效等边界情况' }
+    ]
+  },
+  {
+    day: 10,
+    title: '冷启动物料准备',
+    desc: '使用 AI 制作跨界营销歌曲与视频，准备数字人格互动沙盒，调试宣发文案。',
+    tasks: [
+      { id: 'd10-t1', label: '生成极客风格的 EDM 代码音乐词曲并导出' },
+      { id: 'd10-t2', label: '封装交互式数字人格微服务，准备在即刻/小红书引流' }
+    ]
+  },
+  {
+    day: 11,
+    title: '小范围沙盒验证',
+    desc: '邀请第一批极客或核心目标用户进入封闭沙盒测试，收集最真实的交互回馈。',
+    tasks: [
+      { id: 'd11-t1', label: '向首批 50 名核心用户发放沙盒测试版本' },
+      { id: 'd11-t2', label: '收集核心数据主权体验反馈' }
+    ]
+  },
+  {
+    day: 12,
+    title: '变现系统落地',
+    desc: '植入本地小额单次付费或全本地高级功能解锁方案，打通支付变现闭环。',
+    tasks: [
+      { id: 'd12-t1', label: '集成一元付费或本地解锁验证凭证逻辑' },
+      { id: 'd12-t2', label: '再次验证离线状态下的变现模块安全性' }
+    ]
+  },
+  {
+    day: 13,
+    title: 'ASO自动化生成',
+    desc: '利用大模型自动化生成多语言 App Store 审核文案、隐私条款及 ASO 关键词矩阵。',
+    tasks: [
+      { id: 'd13-t1', label: '准备 App Store 提交的多语言关键字矩阵' },
+      { id: 'd13-t2', label: '生成符合 GDPR 的本地自治数据隐私说明' }
+    ]
+  },
+  {
+    day: 14,
+    title: '上架与判定生死',
+    desc: '正式向应用商店提交上架，如遭遇验证失败，由于架构高度解耦，启动“资产回收”机制快速换肤重开！',
+    tasks: [
+      { id: 'd14-t1', label: '提交包体并开启本地匿名数据看板监测' },
+      { id: 'd14-t2', label: '收集首日用户数据，判定是追加迭代还是立即重开' }
+    ]
+  }
+];
+
+const STEPS_DATA = [
+  { id: 1, badge: 'STEP 01', title: '全网需求洞察与验证' },
+  { id: 2, badge: 'STEP 02', title: '核心功能精简与解耦' },
+  { id: 3, badge: 'STEP 03', title: '高标准 PRD 2.0 生成器' },
+  { id: 4, badge: 'STEP 04', title: '无代码原型与高保真UI' },
+  { id: 5, badge: 'STEP 05', title: '配置本地智能体协同网络' },
+  { id: 6, badge: 'STEP 06', title: '多智能体闭环开发 MVP' },
+  { id: 7, badge: 'STEP 07', title: '本地沙盒极限边界测试' },
+  { id: 8, badge: 'STEP 08', title: '极客精神冷启动 (歌词/数字人格)' },
+  { id: 9, badge: 'STEP 09', title: '变现闭环与小额收费' },
+  { id: 10, badge: 'STEP 10', title: '生死验证与架构复用决策' },
+  { id: 11, badge: 'STEP 11', title: 'ASO 自动化上架与观测' }
+];
+
+// LocalStorage State Manager
+function saveState() {
+  localStorage.setItem('solo_agency_state', JSON.stringify(state));
+  updateSprintProgress();
+}
+
+function loadState() {
+  const saved = localStorage.getItem('solo_agency_state');
+  if (saved) {
+    try {
+      state = { ...DEFAULT_STATE, ...JSON.parse(saved) };
+    } catch (e) {
+      console.error('Failed to parse saved state:', e);
+      state = { ...DEFAULT_STATE };
+    }
+  } else {
+    state = { ...DEFAULT_STATE };
+  }
+}
+
+// Calculate 14-day schedule completion percentage
+function updateSprintProgress() {
+  const totalTasks = SPRINT_SCHEDULE.reduce((sum, d) => sum + d.tasks.length, 0);
+  let completedTasks = 0;
+  for (const key in state.checklist) {
+    if (state.checklist[key]) {
+      completedTasks++;
+    }
+  }
+  const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  
+  const fill = document.getElementById('sprint-progress-fill');
+  const percentText = document.getElementById('sprint-progress-percent');
+  if (fill) fill.style.width = `${percentage}%`;
+  if (percentText) percentText.textContent = `${percentage}%`;
+
+  // Update calendar cells appearance
+  SPRINT_SCHEDULE.forEach(dayInfo => {
+    const dayCell = document.querySelector(`.day-cell[data-day="${dayInfo.day}"]`);
+    if (dayCell) {
+      const allCompleted = dayInfo.tasks.every(t => state.checklist[t.id]);
+      if (allCompleted) {
+        dayCell.classList.add('completed');
+      } else {
+        dayCell.classList.remove('completed');
+      }
+    }
+  });
+
+  // Sync step indicators (if all tasks of a day associated with step are done, we can mark step as completed)
+  // For simplicity, steps can be marked completed manually, or linked. Let's make it manual/semi-automatic.
+  // Step 3 PRD is completed when name & breakout are filled.
+  // Step 6 is active. Let's just update the list nodes dynamically.
+  updateStepNodeClasses();
+}
+
+function updateStepNodeClasses() {
+  const stepNodes = document.querySelectorAll('.step-node');
+  stepNodes.forEach((node, idx) => {
+    if (idx === state.stepIndex) {
+      node.classList.add('active');
+    } else {
+      node.classList.remove('active');
+    }
+
+    // Custom check: is step completed?
+    let isCompleted = false;
+    if (idx === 0) isCompleted = !!state.prd.breakout;
+    if (idx === 2) isCompleted = !!(state.prd.name && state.prd.functions.length > 0);
+    if (idx === 5) isCompleted = state.checklist['d6-t1'] && state.checklist['d6-t2'];
+    if (idx === 6) isCompleted = state.testCases.offline && state.testCases.storageFull && state.testCases.keyInvalid;
+    if (idx === 7) isCompleted = !!state.lyrics.result;
+    if (idx === 9) isCompleted = state.succeeded || !!state.retrospective;
+
+    if (isCompleted) {
+      node.classList.add('completed');
+    } else {
+      node.classList.remove('completed');
+    }
+  });
+}
+
+// DOM Rendering logic for active Step
+function renderActiveStepPanel() {
+  const currentStep = STEPS_DATA[state.stepIndex];
+  
+  // Update badge and title
+  const badge = document.getElementById('step-badge-title');
+  const title = document.getElementById('step-panel-title');
+  const indicator = document.getElementById('step-navigation-indicator');
+  
+  if (badge) badge.textContent = currentStep.badge;
+  if (title) title.textContent = currentStep.title;
+  if (indicator) indicator.textContent = `步骤 ${state.stepIndex + 1}/11`;
+
+  // Render Step Panels HTML
+  const container = document.getElementById('step-body-container');
+  if (!container) return;
+
+  // Render content depending on stepIndex
+  container.innerHTML = getStepPanelHTML(state.stepIndex);
+  
+  // Re-bind listeners for step-specific items
+  bindStepPanelListeners(state.stepIndex);
+
+  // Scroll main panel to top smoothly
+  const mainPanel = document.getElementById('main-panel');
+  if (mainPanel) {
+    mainPanel.scrollTop = 0;
+  }
+}
+
+// Generate Panel HTML
+function getStepPanelHTML(idx) {
+  switch(idx) {
+    case 0: // Step 1
+      return `
+        <div class="animate-slide">
+          <p class="step-description">使用第一性原理对全网需求进行洞察与交叉验证，分析痛点变现可能，规避传统云授权复杂、隐私侵入度高的问题。</p>
+          <div class="form-grid">
+            <div>
+              <label for="s1-competitor">扫描/分析的目标竞品</label>
+              <input type="text" id="s1-competitor" placeholder="例如：云端情绪日记、复杂的多人协作知识库" value="${state.prd.breakout ? '针对 ' + state.prd.breakout + ' 的竞品' : ''}">
+            </div>
+            <div style="margin-top: 1rem;">
+              <button class="btn btn-primary" id="s1-generate-prompt-btn">复制市场第一性原理拆解 Prompt</button>
+            </div>
+          </div>
+          
+          <div class="copy-card" id="s1-prompt-card" style="display: none;">
+            <div class="copy-card-header">
+              <span class="copy-card-title">第一性原理拆解提示词</span>
+              <button class="btn btn-secondary btn-sm" id="s1-copy-btn">一键复制</button>
+            </div>
+            <pre class="copy-card-pre" id="s1-prompt-text"></pre>
+          </div>
+          
+          <div class="glass-panel" style="margin-top: 1.5rem; background: rgba(99, 102, 241, 0.03);">
+            <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-secondary);">洞察分析方法：</h4>
+            <ul style="font-size: 0.85rem; color: var(--text-secondary); padding-left: 1.25rem;">
+              <li style="margin-bottom: 0.4rem;"><b>最底层价值</b>：它的核心实用目的（如记录情绪、保存资料）是什么？</li>
+              <li style="margin-bottom: 0.4rem;"><b>操作痛点</b>：竞品是否强制手机号注册、是否有长达 5 步的授权协议、是否强制云端同步？</li>
+              <li style="margin-bottom: 0.4rem;"><b>破局点</b>：做一个全本地化存储、零网络依赖、极速启动且端到端加密的 MVP。</li>
+            </ul>
+          </div>
+        </div>
+      `;
+    case 1: // Step 2
+      return `
+        <div class="animate-slide">
+          <p class="step-description">严格控制 MVP 的边界范围。剥离所有花哨的次要功能，仅保留唯一的核心闭环，并在物理架构上将“核心算力/逻辑层”与“表现层”做硬解耦。</p>
+          
+          <div class="glass-panel" style="margin-bottom: 1.5rem;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-primary);">架构硬隔离原则：</h4>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 0.75rem; font-size: 0.85rem;">
+              <div style="border-left: 2px solid var(--color-primary); padding-left: 0.75rem;">
+                <b style="color: var(--text-primary);">核心逻辑引擎 (Core Engine)</b>
+                <p style="color: var(--text-secondary); margin-top: 0.2rem;">完全用纯原生/通用代码编写。不能引入任何 UI 框架相关对象（如 Flutter 视图、React 状态等），不含任何路由。可直接进行独立 CLI 单元测试。</p>
+              </div>
+              <div style="border-left: 2px solid var(--color-secondary); padding-left: 0.75rem;">
+                <b style="color: var(--text-primary);">表现渲染层 (UI Presentation)</b>
+                <p style="color: var(--text-secondary); margin-top: 0.2rem;">随时可以替换的“皮”。它只做数据的触发与状态显示，通过抽象的接口调用 Core Engine。</p>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label>MVP 严控边界清单：</label>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+              <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-weight: normal;">
+                <input type="checkbox" id="s2-check-1" style="margin-top: 0.25rem;">
+                <span>已明确核心业务闭环，去除一切非核心设置、分析报表及多余的社交/云分享功能。</span>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-weight: normal;">
+                <input type="checkbox" id="s2-check-2" style="margin-top: 0.25rem;">
+                <span>确认不与特定 UI 状态强绑定的核心引擎接口，使其能够以 CLI 的形式直接本地运行。</span>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-weight: normal;">
+                <input type="checkbox" id="s2-check-3" style="margin-top: 0.25rem;">
+                <span>决定本地自治存储方案（例如 SQLite, LocalStorage, Hive 等加密机制）。</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      `;
+    case 2: // Step 3
+      return `
+        <div class="animate-slide">
+          <p class="step-description">在此处在线构建您的高标准产品需求文档 (PRD 2.0)。该 PRD 包含解耦拓扑和数据主权级规范，数据会自动流入后续智能体 Prompt 生成器。</p>
+          
+          <div class="tab-row">
+            <button class="tab-btn active" id="tab-prd-edit">编辑 PRD 表单</button>
+            <button class="tab-btn" id="tab-prd-preview">实时 Markdown 预览</button>
+          </div>
+          
+          <!-- Edit Form -->
+          <div id="prd-form-container">
+            <div class="form-grid form-grid-2">
+              <div>
+                <label for="prd-name">项目名称</label>
+                <input type="text" id="prd-name" placeholder="请输入您的产品名称" value="${state.prd.name}">
+              </div>
+              <div>
+                <label for="prd-sovereignty">数据主权级别</label>
+                <select id="prd-sovereignty">
+                  <option value="全本地存储 (Local-First)" ${state.prd.sovereignty.includes('全本地存储') ? 'selected' : ''}>全本地存储 (Local-First)</option>
+                  <option value="全本端加密 + 云端脱敏同步" ${state.prd.sovereignty.includes('云端脱敏') ? 'selected' : ''}>全本端加密 + 云端脱敏同步</option>
+                  <option value="本地加密归档 (100% 隐私自治)" ${state.prd.sovereignty.includes('本地加密归档') ? 'selected' : ''}>本地加密归档 (100% 隐私自治)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div style="margin-top: 1rem;">
+              <label for="prd-breakout">核心破局点 / 差异化痛点</label>
+              <input type="text" id="prd-breakout" placeholder="例如：完全离线运行的防泄密情绪手记，零云端服务器，密钥由用户掌管。" value="${state.prd.breakout}">
+            </div>
+            
+            <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+              <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--color-primary);">系统架构物理隔离解耦规范</h4>
+              <div class="form-grid">
+                <div>
+                  <label for="prd-core-engine">核心业务逻辑层 (Core Engine)</label>
+                  <textarea id="prd-core-engine" rows="2" placeholder="如何剥离UI框架依赖...">${state.prd.coreEngine}</textarea>
+                </div>
+                <div style="margin-top: 0.75rem;">
+                  <label for="prd-auth-gateway">API 与授权管理层 (Auth & API Gateway)</label>
+                  <textarea id="prd-auth-gateway" rows="2" placeholder="与重度计算、表现层隔离机制...">${state.prd.authGateway}</textarea>
+                </div>
+                <div style="margin-top: 0.75rem;">
+                  <label for="prd-storage">数据持久层 (Storage)</label>
+                  <textarea id="prd-storage" rows="2" placeholder="SQLite、加密及持久化方案...">${state.prd.storage}</textarea>
+                </div>
+              </div>
+            </div>
+            
+            <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-secondary);">核心功能矩阵 (最多3个模块)</h4>
+                <button class="btn btn-secondary btn-sm" id="prd-add-func-btn">+ 新增模块</button>
+              </div>
+              <table class="matrix-table" id="prd-functions-table">
+                <thead>
+                  <tr>
+                    <th>模块名称</th>
+                    <th>输入/输出定义</th>
+                    <th style="width: 80px;">优先级</th>
+                    <th style="width: 80px;">MVP包含</th>
+                    <th style="width: 50px;">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Filled dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+              <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--color-accent);">变现与阶梯权益设计</h4>
+              <div class="form-grid form-grid-2">
+                <div>
+                  <label for="prd-free-limit">免费功能限制</label>
+                  <input type="text" id="prd-free-limit" placeholder="例如：本地无限次使用，导出标准格式。" value="${state.prd.freeLimit}">
+                </div>
+                <div>
+                  <label for="prd-premium-benefit">增值会员权益 (1元或按次/按月)</label>
+                  <input type="text" id="prd-premium-benefit" placeholder="例如：1元解锁高级私有人工智能分析、iCloud加密备份。" value="${state.prd.premiumBenefit}">
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Markdown Preview -->
+          <div id="prd-preview-container" class="glass-panel" style="display: none; background: #05070C; max-height: 450px; overflow-y: auto;">
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-bottom: 1rem;">
+              <button class="btn btn-secondary btn-sm" id="prd-copy-md-btn">复制代码</button>
+              <button class="btn btn-primary btn-sm" id="prd-download-md-btn">下载 .md 文件</button>
+            </div>
+            <div class="markdown-body" id="prd-markdown-render">
+              <!-- Rendered Markdown goes here -->
+            </div>
+          </div>
+        </div>
+      `;
+    case 3: // Step 4
+      return `
+        <div class="animate-slide">
+          <p class="step-description">无代码原型高保真构建。使用现代、精致的 UI 提示词来塑造美学系统。在此步骤中，您的目标是锁定产品界面的调性并生成可复用的 UI 表现层卡片。</p>
+          
+          <div class="glass-panel" style="background: rgba(6, 182, 212, 0.03); border-color: rgba(6, 182, 212, 0.2);">
+            <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--color-secondary); margin-bottom: 0.5rem;">✨ 现代极客美学 UI 提示词生成器</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+              复制以下高保真 UI 表现层提示词，直接输入给界面生成 AI (如 v0.dev, Bolt.new, Lovable.dev) 或前端大模型：
+            </p>
+            
+            <div class="copy-card">
+              <div class="copy-card-header">
+                <span class="copy-card-title">UI 表现层高保真提示词</span>
+                <button class="btn btn-secondary btn-sm" id="s4-copy-prompt-btn">复制 UI 提示词</button>
+              </div>
+              <pre class="copy-card-pre" id="s4-prompt-text" style="font-size: 0.8rem; line-height: 1.4;">角色：资深现代前端 UI 视觉设计师
+任务：为项目「${state.prd.name || '我们的产品'}」设计一个极其 premium 且富有视觉冲击力的单页面 MVP 表现层界面。
+
+核心审美规范：
+1. 主打深邃的暗黑科技感（Futuristic Deep Space Dark Mode），背景色使用极暗蓝黑（#070B14）。
+2. 面板全部采用高透明毛玻璃质感（Glassmorphism），包含 12px 模糊度，以及微弱的半透明浅色发光边框（border: 1px solid rgba(255,255,255,0.06)）。
+3. 使用霓虹渐变（Neon Gradients）作为高亮视觉反馈，如从 Indigo (#6366F1) 到 Violet (#8B5CF6)。
+4. 所有按钮和交互节点在悬停时，需带有平滑的微弱发光阴影扩散（Glow Transition）。
+5. 字体使用 Outfit 或 Inter，搭配完美的垂直和水平图标对齐。
+6. 面板排版具备良好的间距和层次，不堆叠信息，确保高保真精致感。
+
+请输出基于 HTML + CSS 变量或 Tailwind 的精美前端页面布局代码。</pre>
+            </div>
+          </div>
+        </div>
+      `;
+    case 4: // Step 5
+      return `
+        <div class="animate-slide">
+          <p class="step-description">配置本地开发智能体协同网络。我们需要在编辑器中配置专门的 System Prompt，分立架构师、开发员与审计员会话，切忌混杂任务。</p>
+          
+          <div class="glass-panel" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;">本地智能体协同规则（3段式）</h4>
+            <div>
+              <b style="color: var(--color-secondary);">1. 架构师会话 (Architect Session)</b>
+              <p style="color: var(--text-secondary); margin-top: 0.1rem;">仅用于需求拆解、文件树搭建和定义接口。一旦架构确定，锁定接口定义，绝不在此会话中写具体实现代码。</p>
+            </div>
+            <div>
+              <b style="color: var(--color-accent);">2. 开发员会话 (Developer Session)</b>
+              <p style="color: var(--text-secondary); margin-top: 0.1rem;">只允许开发单一具体接口，禁止跨模块修改文件，防止大模型发生逻辑污染或过度拟合。</p>
+            </div>
+            <div>
+              <b style="color: var(--color-success);">3. 审计员会话 (Reviewer Session)</b>
+              <p style="color: var(--text-secondary); margin-top: 0.1rem;">独立跑静态安全与内存审计，反馈 Bug 修改建议回开发员会话，形成闭环。</p>
+            </div>
+          </div>
+        </div>
+      `;
+    case 5: // Step 6
+      return `
+        <div class="animate-slide">
+          <p class="step-description">根据您在 Step 3 录入的 PRD 信息，系统已自动组装好以下分层智能体的定制化 System Prompt。请选择当前要开发的模块，一键复制并注入本地 AI 编辑器。</p>
+          
+          <div style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 1rem;">
+            <label for="s6-active-module" style="margin-bottom: 0; white-space: nowrap;">当前聚焦开发的模块：</label>
+            <select id="s6-active-module" style="max-width: 250px; padding: 0.5rem 0.75rem;">
+              ${state.prd.functions.map(f => `<option value="${f.name}">${f.name}</option>`).join('')}
+            </select>
+          </div>
+          
+          <div class="tab-row" id="s6-prompt-tabs">
+            <button class="tab-btn active" data-role="architect">智能架构师 (Architect)</button>
+            <button class="tab-btn" data-role="developer">智能开发员 (Developer)</button>
+            <button class="tab-btn" data-role="reviewer">智能审计员 (Reviewer)</button>
+          </div>
+          
+          <div class="copy-card">
+            <div class="copy-card-header">
+              <span class="copy-card-title" id="s6-role-title">智能架构师 (Architect) System Prompt</span>
+              <button class="btn btn-primary btn-sm" id="s6-copy-prompt-btn">一键复制 Prompt</button>
+            </div>
+            <pre class="copy-card-pre" id="s6-prompt-area" style="max-height: 350px; font-size: 0.8rem; line-height: 1.4;"></pre>
+          </div>
+        </div>
+      `;
+    case 6: // Step 7
+      return `
+        <div class="animate-slide">
+          <p class="step-description">本地沙盒极限边界测试。模拟极端网络与存储情况，跑通本地加密流，确立离线状态下的强稳定性与数据安全性。</p>
+          
+          <div class="glass-panel" style="margin-bottom: 1.5rem;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-secondary); margin-bottom: 0.5rem;">极限沙盒异常模拟清单</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">请对照项目在本地运行的实际表现，模拟测试以下边界，通过后勾选：</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.85rem;">
+              <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-weight: normal;">
+                <input type="checkbox" id="s7-test-offline" ${state.testCases.offline ? 'checked' : ''} style="margin-top: 0.25rem;">
+                <div>
+                  <b style="color: var(--text-primary);">【断网测试】彻底关闭本地网络</b>
+                  <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.1rem;">应用启动、数据检索、授权检测是否100%成功，有无发生接口阻塞或崩溃？</p>
+                </div>
+              </label>
+              
+              <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-weight: normal;">
+                <input type="checkbox" id="s7-test-storage" ${state.testCases.storageFull ? 'checked' : ''} style="margin-top: 0.25rem;">
+                <div>
+                  <b style="color: var(--text-primary);">【写入溢出】模拟本地持久层占满或写入受限</b>
+                  <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.1rem;">数据库溢出/LocalStorage写满时，系统是否能优雅降级提示，避免核心数据损坏丢失？</p>
+                </div>
+              </label>
+              
+              <label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-weight: normal;">
+                <input type="checkbox" id="s7-test-key" ${state.testCases.keyInvalid ? 'checked' : ''} style="margin-top: 0.25rem;">
+                <div>
+                  <b style="color: var(--text-primary);">【凭证失效】本地密钥/解密凭证失效或过期</b>
+                  <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.1rem;">密钥错误或篡改时，加密库是否能准确拦截并发出安全警告，而非直接抛出致命未捕获异常？</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+      `;
+    case 7: // Step 8
+      return `
+        <div class="animate-slide">
+          <p class="step-description">极客精神冷启动营销。无需昂贵的硬广，利用技术本身的魅力。通过将开源代码/极客哲学转化为节奏感极强的 EDM Pop 电子音乐，并配合“数字人格”在社交媒体引流。</p>
+          
+          <div class="tab-row" id="s8-tabs">
+            <button class="tab-btn active" id="tab-s8-music">Suno/Udio 极客歌词生成器</button>
+            <button class="tab-btn" id="tab-s8-persona">数字人格 (Persona) 调试沙盒</button>
+          </div>
+          
+          <!-- Music Tab -->
+          <div id="s8-music-panel">
+            <div class="form-grid form-grid-2">
+              <div>
+                <label for="s8-keywords">音乐核心关键字</label>
+                <input type="text" id="s8-keywords" placeholder="以逗号分隔，如 Local-First, Safe, Code" value="${state.lyrics.keywords}">
+              </div>
+              <div>
+                <label for="s8-genre">曲风风格</label>
+                <select id="s8-genre">
+                  <option value="EDM Pop" ${state.lyrics.genre === 'EDM Pop' ? 'selected' : ''}>EDM Pop (电光活力霓虹)</option>
+                  <option value="Synthwave" ${state.lyrics.genre === 'Synthwave' ? 'selected' : ''}>Synthwave (复古科幻模拟)</option>
+                  <option value="Cyberpunk" ${state.lyrics.genre === 'Cyberpunk' ? 'selected' : ''}>Cyberpunk (工业重暗黑科技)</option>
+                  <option value="Chiptune" ${state.lyrics.genre === 'Chiptune' ? 'selected' : ''}>Chiptune (8位红白机童趣)</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;" id="s8-generate-lyrics-btn">自动合成极客 EDM 流行歌词</button>
+            
+            <div class="glass-panel" style="margin-top: 1.25rem; display: ${state.lyrics.result ? 'block' : 'none'};" id="s8-lyrics-output-container">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="copy-card-title">生成的歌词 (可直接复制到 Suno/Udio 创作)</span>
+                <button class="btn btn-secondary btn-sm" id="s8-copy-lyrics-btn">一键复制歌词</button>
+              </div>
+              <div class="song-lyrics-output" id="s8-lyrics-rendered"></div>
+            </div>
+          </div>
+          
+          <!-- Persona Tab -->
+          <div id="s8-persona-panel" style="display: none;">
+            <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+              <label for="s8-persona-select" style="margin-bottom: 0; white-space: nowrap;">调试人格预设：</label>
+              <select id="s8-persona-select" style="max-width: 200px; padding: 0.4rem 0.6rem;">
+                <option value="Indie Hacker" ${state.chatbot.persona === 'Indie Hacker' ? 'selected' : ''}>独立创客 (Indie Hacker)</option>
+                <option value="Cyberpunk Hacker" ${state.chatbot.persona === 'Cyberpunk Hacker' ? 'selected' : ''}>赛博黑客 (Cyberpunk Hacker)</option>
+                <option value="Academic Researcher" ${state.chatbot.persona === 'Academic Researcher' ? 'selected' : ''}>第一性学术家 (Academic)</option>
+                <option value="1-Yuan Store Seller" ${state.chatbot.persona === '1-Yuan Store Seller' ? 'selected' : ''}>一元付费店长 (1-Yuan Shop)</option>
+              </select>
+            </div>
+            
+            <div class="chat-sandbox">
+              <div class="chat-messages" id="s8-chat-messages">
+                <!-- Message Bubbles -->
+              </div>
+              <div class="chat-input-area">
+                <input type="text" id="s8-chat-input" placeholder="输入用户的提问，测试我的回复语气...">
+                <button class="btn btn-primary btn-sm" id="s8-chat-send-btn">发送</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    case 8: // Step 9
+      return `
+        <div class="animate-slide">
+          <p class="step-description">变现机制落地。坚守全本地功能免费的诚信基石，通过 1元 微额解锁 / 云端加密高算力扩展等超低心智门槛实现变现。</p>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="glass-panel" style="border-top: 3px solid var(--color-success);">
+              <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-success); margin-bottom: 0.5rem;">诚信基础 (免费额度)</h4>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">
+                所有核心计算、本地加密存储均免费，永不限流，用完即走。获取首批 1000 个种子用户并形成口碑。
+              </p>
+              <div style="background: rgba(16, 185, 129, 0.05); padding: 0.5rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-primary); border: 1px solid rgba(16, 185, 129, 0.15);">
+                <b>本地免费权益：</b> ${state.prd.freeLimit || '全本地免费。'}
+              </div>
+            </div>
+            <div class="glass-panel" style="border-top: 3px solid var(--color-primary);">
+              <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.5rem;">增值转化 (付费锁)</h4>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">
+                针对高级 AI 算法人设、高冗余云端同步、定制化外观等。主打 1 元/单次极低单价，降低首次决策成本。
+              </p>
+              <div style="background: rgba(99, 102, 241, 0.05); padding: 0.5rem; border-radius: 6px; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-primary); border: 1px solid rgba(99, 102, 241, 0.15);">
+                <b>高级增值权益：</b> ${state.prd.premiumBenefit || '高级数据报表/同步。'}
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass-panel" style="background: rgba(245, 158, 11, 0.03); border-color: rgba(245, 158, 11, 0.2);">
+            <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--color-warning); margin-bottom: 0.4rem;">💡 独立开发者定价心学：</h4>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+              不要一开始就设置昂贵的月订阅费。先向用户证明你的全本地化方案极具诚意，然后以极低价格（比如 1 元解锁高级微服务）诱导用户进行首次支付，打破信任冰层。
+            </p>
+          </div>
+        </div>
+      `;
+    case 9: // Step 10
+      return `
+        <div class="animate-slide">
+          <p class="step-description">生死判断分水岭。如果市场反响优秀或首批用户验证成功，解锁下一步进行自动化上架与大范围投放。如果验证失败，立即执行“资产回收”解耦重开。</p>
+          
+          <div class="glass-panel success-gate-panel" id="s10-gate-panel" style="display: ${state.succeeded || state.retrospective ? 'none' : 'flex'};">
+            <span class="trophy-glow">🏆</span>
+            <div>
+              <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.25rem;">你的 MVP 验证结果如何？</h3>
+              <p style="font-size: 0.85rem; color: var(--text-secondary);">根据第一批种子用户反馈，理性评测并作出你的一人公司战略决策：</p>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; width: 100%; max-width: 400px; margin-top: 0.5rem;">
+              <button class="btn btn-danger" style="flex: 1; padding: 0.8rem;" id="s10-btn-fail">
+                ❌ 验证失败 (重构)
+              </button>
+              <button class="btn btn-success" style="flex: 1; padding: 0.8rem;" id="s10-btn-success">
+                ✅ 验证成功 (做大)
+              </button>
+            </div>
+          </div>
+
+          <!-- SUCCESS PANEL -->
+          <div class="glass-panel animate-slide" id="s10-success-panel" style="display: ${state.succeeded ? 'block' : 'none'}; text-align: center; padding: 2rem 1.5rem; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.02);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉 祝贺您！MVP 验证大成功！</div>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem;">
+              种子用户反响超出预期！您的数据主权防线得到了市场的极高拥护。准备好自动化打包、多语言 ASO 文案发布，正式投放并迎接您的第一批 1000 个付费用户吧！
+            </p>
+            <div style="display: flex; justify-content: center; gap: 1rem;">
+              <button class="btn btn-secondary" id="s10-reset-decision-1">重新评估决策</button>
+              <button class="btn btn-primary" id="s10-go-step11-btn">前往 Step 11 上架与数据观测</button>
+            </div>
+          </div>
+
+          <!-- FAILURE/PIVOT PANEL -->
+          <div class="glass-panel animate-slide" id="s10-failure-panel" style="display: ${state.retrospective ? 'block' : 'none'}; border-color: rgba(244, 63, 94, 0.4); background: rgba(244, 63, 94, 0.02);">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-error); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+              🔄 敏捷复盘与底层资产回收
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+              这次尝试被市场否决了。但这并不代表失败！由于您遵循了 2.0 物理完全隔离架构，您的 <b>核心业务逻辑层 (Core Engine)</b>、<b>加密数据存储</b> 与 <b>安全授权网关</b> 资产是完好无损的。您可以像“脱壳”一样，抛弃目前的 UI UI表现层，在一两天内用这一套底层，重新投产另一个 App 换新方向。
+            </p>
+            
+            <div style="margin-bottom: 1rem;">
+              <label for="s10-retro-input">填写失败复盘记录 (记录你的第一性思考，这非常重要！)</label>
+              <textarea id="s10-retro-input" rows="3" placeholder="例如：用户反馈这类记账应用记账频次太低，但对他们的敏感账单解密本身很感兴趣。说明数据主权诉求存在，但需要降维到隐私日记方向..." style="font-size: 0.85rem;">${state.retrospective}</textarea>
+            </div>
+
+            <div style="background: rgba(5, 7, 12, 0.4); padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem; margin-bottom: 1.5rem;">
+              <b style="color: var(--color-secondary);">可回收继续复用的底层物理模块：</b>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem;" id="s10-reusable-modules-tags">
+                <!-- Tags filled dynamically -->
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <button class="btn btn-secondary btn-sm" id="s10-reset-decision-2">重新评估决策</button>
+              <button class="btn btn-danger btn-sm" id="s10-pivot-reset-btn" style="background: var(--grad-error);">
+                ⚡ 保留底层模块，一键脱壳重开项目！
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    case 10: // Step 11
+      return `
+        <div class="animate-slide">
+          <p class="step-description">自动化上架合规与数据观测。在应用商店多语言 ASO 撰写中，通过 AI 生成符合 GDPR 规范的数据隐私说明，并自建本地化匿名监控看板。</p>
+          
+          <div class="glass-panel" style="background: rgba(16, 185, 129, 0.03); border-color: rgba(16, 185, 129, 0.2); margin-bottom: 1.25rem;">
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-success); margin-bottom: 0.5rem;">📋 本地化合规上架说明生成器</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+              由于本应用实施了严格的“数据主权与本地自治协议”，您极易通过苹果与谷歌的严苛隐私审核。复制以下针对 App Store 隐私说明的文案模板：
+            </p>
+            
+            <div class="copy-card">
+              <div class="copy-card-header">
+                <span class="copy-card-title">GDPR/隐私合规声明模板</span>
+                <button class="btn btn-secondary btn-sm" id="s11-copy-btn">复制合规声明</button>
+              </div>
+              <pre class="copy-card-pre" id="s11-text-area" style="font-size: 0.8rem; line-height: 1.4;">应用名称：${state.prd.name || '我们的产品'}
+开发者承诺：
+本应用倡导「本地自治优先 (Local-First)」与「数据主权 (Data Sovereignty)」核心理念。
+1. 本应用没有任何第三方登录，不收集、不上传任何个人明文数据至外部服务器。
+2. 用户的核心情绪数据/知识资产，采用本地高强度加密模块进行本地化存储。
+3. 即使发生网络访问，所有数据同步机制均经本地端到端强混淆与加密，没有任何服务器能够读取密文数据。
+4. 本应用完全支持 100% 离线运行，用户有权随时导出其全部本地物理数据库，并一键彻底粉碎本地所有加密数据。</pre>
+            </div>
+          </div>
+
+          <div class="glass-panel" style="background: rgba(99, 102, 241, 0.02); border-color: var(--border-color);">
+            <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-primary);">数据观测最佳实践：</h4>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+              不要为了统计而集成侵入度极高的 SDK。建议使用自建本地匿名埋点，或者仅开启 Firebase App Analytics 匿名事件（禁用 IDFA、关闭 IP 跟踪），这能极大地保护用户体验和开发者信用。
+            </p>
+          </div>
+        </div>
+      `;
+    default:
+      return `<p>未知的步骤索引</p>`;
+  }
+}
+
+// Binds panel event listeners after DOM loading
+function bindStepPanelListeners(idx) {
+  switch(idx) {
+    case 0: { // Step 1
+      const genBtn = document.getElementById('s1-generate-prompt-btn');
+      const copyBtn = document.getElementById('s1-copy-btn');
+      const promptCard = document.getElementById('s1-prompt-card');
+      const promptText = document.getElementById('s1-prompt-text');
+      const compInput = document.getElementById('s1-competitor');
+
+      if (genBtn && promptCard && promptText) {
+        genBtn.addEventListener('click', () => {
+          const comp = compInput ? compInput.value : '目标产品';
+          const prompt = `你是一位资深市场洞察专家。请对以下竞品/热门事件进行“第一性原理”拆解：
+1. 它的最底层用户价值是什么？（去除社交、虚荣、管理焦虑，只看其实质帮助）
+2. 现有方案在“数据隐私”、“操作链路”和“授权繁琐度”上有何痛点？
+3. 如果做一个全本地化运行或极度轻量化的 MVP，我的核心破局点在哪里？（只保留那 20% 能产生 80% 价值的核心引擎，以及强行解耦的本地安全架构）
+
+请拆解竞品：${comp}`;
+          
+          promptText.textContent = prompt;
+          promptCard.style.display = 'block';
+          
+          // Pre-fill Step 3 breakout
+          state.prd.breakout = `全本地安全自治，彻底解决传统云端对「${comp}」造成的隐私与多步授权痛点。`;
+          saveState();
+        });
+      }
+
+      if (copyBtn && promptText) {
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(promptText.textContent);
+          copyBtn.textContent = '已复制！';
+          setTimeout(() => copyBtn.textContent = '一键复制', 2000);
+        });
+      }
+      break;
+    }
+    case 1: { // Step 2
+      const checks = [
+        document.getElementById('s2-check-1'),
+        document.getElementById('s2-check-2'),
+        document.getElementById('s2-check-3')
+      ];
+
+      checks.forEach((check, index) => {
+        if (check) {
+          // Load state
+          const checkId = `s2-task-${index}`;
+          check.checked = !!state.checklist[checkId];
+          
+          check.addEventListener('change', () => {
+            state.checklist[checkId] = check.checked;
+            saveState();
+          });
+        }
+      });
+      break;
+    }
+    case 2: { // Step 3
+      const tabEdit = document.getElementById('tab-prd-edit');
+      const tabPrev = document.getElementById('tab-prd-preview');
+      const formContainer = document.getElementById('prd-form-container');
+      const prevContainer = document.getElementById('prd-preview-container');
+
+      if (tabEdit && tabPrev && formContainer && prevContainer) {
+        tabEdit.addEventListener('click', () => {
+          tabEdit.classList.add('active');
+          tabPrev.classList.remove('active');
+          formContainer.style.display = 'block';
+          prevContainer.style.display = 'none';
+        });
+
+        tabPrev.addEventListener('click', () => {
+          tabEdit.classList.remove('active');
+          tabPrev.classList.add('active');
+          formContainer.style.display = 'none';
+          prevContainer.style.display = 'block';
+          
+          // Generate Markdown preview
+          renderPrdMarkdown();
+        });
+      }
+
+      // Input change binds
+      const inputs = ['prd-name', 'prd-sovereignty', 'prd-breakout', 'prd-core-engine', 'prd-auth-gateway', 'prd-storage', 'prd-free-limit', 'prd-premium-benefit'];
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', () => {
+            const key = id.replace('prd-', '').replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+            state.prd[key] = el.value;
+            saveState();
+          });
+        }
+      });
+
+      // Render Functions table rows
+      renderPrdFunctionsTable();
+
+      const addBtn = document.getElementById('prd-add-func-btn');
+      if (addBtn) {
+        addBtn.addEventListener('click', () => {
+          state.prd.functions.push({ name: '新功能模块', io: '输入定义 -> 输出定义', priority: '中', mvp: true });
+          saveState();
+          renderPrdFunctionsTable();
+        });
+      }
+
+      // MD copy and download
+      const copyMd = document.getElementById('prd-copy-md-btn');
+      if (copyMd) {
+        copyMd.addEventListener('click', () => {
+          const md = compilePrdMarkdownString();
+          navigator.clipboard.writeText(md);
+          copyMd.textContent = '已复制！';
+          setTimeout(() => copyMd.textContent = '复制代码', 2000);
+        });
+      }
+
+      const downloadMd = document.getElementById('prd-download-md-btn');
+      if (downloadMd) {
+        downloadMd.addEventListener('click', () => {
+          const md = compilePrdMarkdownString();
+          const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `${state.prd.name || 'project'}_prd_2.0.md`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
+      }
+      break;
+    }
+    case 3: { // Step 4
+      const copyBtn = document.getElementById('s4-copy-prompt-btn');
+      const text = document.getElementById('s4-prompt-text');
+      if (copyBtn && text) {
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(text.textContent);
+          copyBtn.textContent = '已复制 UI 提示词！';
+          setTimeout(() => copyBtn.textContent = '复制 UI 提示词', 2000);
+        });
+      }
+      break;
+    }
+    case 5: { // Step 6
+      const dropdown = document.getElementById('s6-active-module');
+      const tabContainer = document.getElementById('s6-prompt-tabs');
+      const roleTitle = document.getElementById('s6-role-title');
+      const promptArea = document.getElementById('s6-prompt-area');
+      const copyBtn = document.getElementById('s6-copy-prompt-btn');
+      
+      let activeRole = 'architect';
+
+      function updateS6Prompt() {
+        const activeModule = dropdown ? dropdown.value : '';
+        let promptText = '';
+        let titleText = '';
+
+        if (activeRole === 'architect') {
+          promptText = architectPrompt(state.prd);
+          titleText = '智能架构师 (Architect) System Prompt';
+        } else if (activeRole === 'developer') {
+          promptText = developerPrompt(state.prd, activeModule);
+          titleText = '智能开发员 (Developer) System Prompt';
+        } else if (activeRole === 'reviewer') {
+          promptText = reviewerPrompt(state.prd, activeModule);
+          titleText = '智能审计员 (Reviewer) System Prompt';
+        }
+
+        if (promptArea) promptArea.textContent = promptText;
+        if (roleTitle) roleTitle.textContent = titleText;
+      }
+
+      if (dropdown) {
+        dropdown.addEventListener('change', updateS6Prompt);
+      }
+
+      if (tabContainer) {
+        const tabs = tabContainer.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            activeRole = tab.getAttribute('data-role');
+            updateS6Prompt();
+          });
+        });
+      }
+
+      if (copyBtn && promptArea) {
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(promptArea.textContent);
+          copyBtn.textContent = '已复制 Prompt！';
+          setTimeout(() => copyBtn.textContent = '一键复制 Prompt', 2000);
+        });
+      }
+
+      updateS6Prompt();
+      break;
+    }
+    case 6: { // Step 7
+      const testOffline = document.getElementById('s7-test-offline');
+      const testStorage = document.getElementById('s7-test-storage');
+      const testKey = document.getElementById('s7-test-key');
+
+      const bindTest = (el, key) => {
+        if (el) {
+          el.addEventListener('change', () => {
+            state.testCases[key] = el.checked;
+            saveState();
+          });
+        }
+      };
+
+      bindTest(testOffline, 'offline');
+      bindTest(testStorage, 'storageFull');
+      bindTest(testKey, 'keyInvalid');
+      break;
+    }
+    case 7: { // Step 8
+      const tabMusic = document.getElementById('tab-s8-music');
+      const tabPersona = document.getElementById('tab-s8-persona');
+      const panelMusic = document.getElementById('s8-music-panel');
+      const panelPersona = document.getElementById('s8-persona-panel');
+
+      if (tabMusic && tabPersona && panelMusic && panelPersona) {
+        tabMusic.addEventListener('click', () => {
+          tabMusic.classList.add('active');
+          tabPersona.classList.remove('active');
+          panelMusic.style.display = 'block';
+          panelPersona.style.display = 'none';
+        });
+
+        tabPersona.addEventListener('click', () => {
+          tabMusic.classList.remove('active');
+          tabPersona.classList.add('active');
+          panelMusic.style.display = 'none';
+          panelPersona.style.display = 'block';
+          renderChatMessages();
+        });
+      }
+
+      // Music Songwriter
+      const keywordsInput = document.getElementById('s8-keywords');
+      const genreSelect = document.getElementById('s8-genre');
+      const genLyricsBtn = document.getElementById('s8-generate-lyrics-btn');
+      const outputContainer = document.getElementById('s8-lyrics-output-container');
+      const lyricsRendered = document.getElementById('s8-lyrics-rendered');
+      const copyLyricsBtn = document.getElementById('s8-copy-lyrics-btn');
+
+      if (keywordsInput) {
+        keywordsInput.addEventListener('input', () => {
+          state.lyrics.keywords = keywordsInput.value;
+          saveState();
+        });
+      }
+      if (genreSelect) {
+        genreSelect.addEventListener('change', () => {
+          state.lyrics.genre = genreSelect.value;
+          saveState();
+        });
+      }
+
+      // Load existing result
+      if (state.lyrics.result && lyricsRendered && outputContainer) {
+        lyricsRendered.textContent = state.lyrics.result;
+        outputContainer.style.display = 'block';
+      }
+
+      if (genLyricsBtn) {
+        genLyricsBtn.addEventListener('click', () => {
+          const lyrics = getEdmSongLyrics(state.prd.name, state.lyrics.keywords, state.lyrics.genre);
+          state.lyrics.result = lyrics;
+          saveState();
+
+          if (lyricsRendered && outputContainer) {
+            lyricsRendered.textContent = lyrics;
+            outputContainer.style.display = 'block';
+            lyricsRendered.scrollTop = 0;
+          }
+        });
+      }
+
+      if (copyLyricsBtn && lyricsRendered) {
+        copyLyricsBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(lyricsRendered.textContent);
+          copyLyricsBtn.textContent = '已复制歌词！';
+          setTimeout(() => copyLyricsBtn.textContent = '一键复制歌词', 2000);
+        });
+      }
+
+      // Chat Simulator
+      const chatInput = document.getElementById('s8-chat-input');
+      const chatSendBtn = document.getElementById('s8-chat-send-btn');
+      const personaSelect = document.getElementById('s8-persona-select');
+
+      if (personaSelect) {
+        personaSelect.addEventListener('change', () => {
+          state.chatbot.persona = personaSelect.value;
+          state.chatbot.messages = [
+            { sender: 'bot', text: `你好！我是你的项目的数字人格分身，已加载 [${state.chatbot.persona}] 预设。在社交平台上，我会用这种调性与用户沟通，快来测试我吧！` }
+          ];
+          saveState();
+          renderChatMessages();
+        });
+      }
+
+      const sendMessage = () => {
+        if (!chatInput) return;
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        state.chatbot.messages.push({ sender: 'user', text });
+        chatInput.value = '';
+        renderChatMessages();
+
+        // Simulate Persona response
+        setTimeout(() => {
+          const botReply = getPersonaResponse(state.chatbot.persona, text);
+          state.chatbot.messages.push({ sender: 'bot', text: botReply });
+          saveState();
+          renderChatMessages();
+        }, 800);
+      };
+
+      if (chatSendBtn) {
+        chatSendBtn.addEventListener('click', sendMessage);
+      }
+      if (chatInput) {
+        chatInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') sendMessage();
+        });
+      }
+      break;
+    }
+    case 9: { // Step 10
+      const btnFail = document.getElementById('s10-btn-fail');
+      const btnSuccess = document.getElementById('s10-btn-success');
+      const gatePanel = document.getElementById('s10-gate-panel');
+      const successPanel = document.getElementById('s10-success-panel');
+      const failurePanel = document.getElementById('s10-failure-panel');
+      const reset1 = document.getElementById('s10-reset-decision-1');
+      const reset2 = document.getElementById('s10-reset-decision-2');
+
+      const showGate = () => {
+        if (gatePanel) gatePanel.style.display = 'flex';
+        if (successPanel) successPanel.style.display = 'none';
+        if (failurePanel) failurePanel.style.display = 'none';
+        state.succeeded = false;
+        state.retrospective = '';
+        saveState();
+      };
+
+      if (reset1) reset1.addEventListener('click', showGate);
+      if (reset2) reset2.addEventListener('click', showGate);
+
+      if (btnSuccess) {
+        btnSuccess.addEventListener('click', () => {
+          state.succeeded = true;
+          saveState();
+          if (gatePanel) gatePanel.style.display = 'none';
+          if (successPanel) successPanel.style.display = 'block';
+          
+          // Trigger Confetti!
+          if (confettiModule) {
+            confettiModule({
+              particleCount: 150,
+              spread: 80,
+              origin: { y: 0.6 }
+            });
+          }
+        });
+      }
+
+      if (btnFail) {
+        btnFail.addEventListener('click', () => {
+          state.retrospective = '根据分析，本次失败核心原因是：[在此录入您的反思...]';
+          saveState();
+          if (gatePanel) gatePanel.style.display = 'none';
+          if (failurePanel) failurePanel.style.display = 'block';
+          
+          // Fill tags
+          renderPivotTags();
+        });
+      }
+
+      // Retro input binding
+      const retroInput = document.getElementById('s10-retro-input');
+      if (retroInput) {
+        retroInput.addEventListener('input', () => {
+          state.retrospective = retroInput.value;
+          saveState();
+        });
+      }
+
+      // Handle Pivot Reset
+      const pivotBtn = document.getElementById('s10-pivot-reset-btn');
+      if (pivotBtn) {
+        pivotBtn.addEventListener('click', () => {
+          if (confirm('确认进行【底层回收，架构换壳】？这将清空当前的所有进度、歌词、聊天记录和上架文案，但会保留您的 PRD 2.0 系统架构层配置（业务逻辑层、授权管理层、数据持久层及核心模块表格）。')) {
+            // Keep Core Architecture parameters
+            const preservedPrd = {
+              name: '', // Reset name
+              breakout: '', // Reset breakout
+              sovereignty: state.prd.sovereignty,
+              coreEngine: state.prd.coreEngine,
+              authGateway: state.prd.authGateway,
+              storage: state.prd.storage,
+              functions: [...state.prd.functions],
+              freeLimit: state.prd.freeLimit,
+              premiumBenefit: state.prd.premiumBenefit
+            };
+
+            state = {
+              ...DEFAULT_STATE,
+              prd: preservedPrd,
+              failuresCount: state.failuresCount + 1,
+              checklist: {} // Reset timeline
+            };
+            saveState();
+
+            alert('解耦脱壳成功！底层逻辑库已回收，项目重置至 Step 1，快去寻找下一个破局点吧！');
+            state.stepIndex = 0;
+            saveState();
+            renderActiveStepPanel();
+            renderDaysGrid();
+          }
+        });
+      }
+
+      if (state.retrospective) {
+        renderPivotTags();
+      }
+
+      break;
+    }
+    case 10: { // Step 11
+      const copyBtn = document.getElementById('s11-copy-btn');
+      const text = document.getElementById('s11-text-area');
+      if (copyBtn && text) {
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(text.textContent);
+          copyBtn.textContent = '已复制上架文案！';
+          setTimeout(() => copyBtn.textContent = '复制合规声明', 2000);
+        });
+      }
+      break;
+    }
+  }
+}
+
+// Helper to compile tags in pivot fail panel
+function renderPivotTags() {
+  const tagsContainer = document.getElementById('s10-reusable-modules-tags');
+  if (!tagsContainer) return;
+  tagsContainer.innerHTML = '';
+  
+  const modules = [
+    { label: '核心业务层 (Core Engine)', color: 'var(--color-primary)' },
+    { label: '安全网关层 (Auth Gateway)', color: 'var(--color-accent)' },
+    { label: '数据存储层 (Secure Storage)', color: 'var(--color-secondary)' },
+    ...state.prd.functions.map(f => ({ label: `模块: ${f.name}`, color: 'rgba(255,255,255,0.05)' }))
+  ];
+
+  modules.forEach(m => {
+    const span = document.createElement('span');
+    span.style.padding = '0.35rem 0.65rem';
+    span.style.borderRadius = '4px';
+    span.style.fontSize = '0.75rem';
+    span.style.fontWeight = '600';
+    span.style.background = m.color.startsWith('var') ? `rgba(99, 102, 241, 0.15)` : m.color;
+    span.style.border = m.color.startsWith('var') ? `1px solid ${m.color}` : '1px solid rgba(255,255,255,0.08)';
+    span.style.color = m.color.startsWith('var') ? m.color : 'var(--text-secondary)';
+    span.textContent = m.label;
+    tagsContainer.appendChild(span);
+  });
+}
+
+// Compile PRD to markdown format
+function compilePrdMarkdownString() {
+  const name = state.prd.name || '未命名项目';
+  const breakout = state.prd.breakout || '暂无说明';
+  const sovereignty = state.prd.sovereignty || '未指定';
+  const coreEngine = state.prd.coreEngine || '无';
+  const authGateway = state.prd.authGateway || '无';
+  const storage = state.prd.storage || '无';
+  const freeLimit = state.prd.freeLimit || '无';
+  const premiumBenefit = state.prd.premiumBenefit || '无';
+
+  let md = `# 产品需求文档 (PRD) 2.0 - ${name}
+
+## 1. 基础拓扑与差异化
+- **项目名称**：${name}
+- **核心破局点**：${breakout}
+- **数据主权级别**：${sovereignty}
+
+## 2. 系统架构与解耦规范
+- **核心业务逻辑层 (Core Engine)**：
+  \`\`\`text
+  ${coreEngine}
+  \`\`\`
+- **API 与授权管理层 (Auth & API Gateway)**：
+  \`\`\`text
+  ${authGateway}
+  \`\`\`
+- **数据持久层 (Storage)**：
+  \`\`\`text
+  ${storage}
+  \`\`\`
+
+## 3. 核心功能矩阵 (严格限制 3 个以内)
+| 模块名称 | 输入/输出定义 | 优先级 | MVP 是否包含 |
+| :--- | :--- | :--- | :--- |
+`;
+
+  state.prd.functions.forEach(f => {
+    md += `| ${f.name} | ${f.io} | ${f.priority} | ${f.mvp ? '是' : '否'} |\n`;
+  });
+
+  md += `
+## 4. 变现点与冷启动宣发设计
+- **免费限制**：${freeLimit}
+- **增值权益**：${premiumBenefit}
+`;
+  return md;
+}
+
+// Render Markdown preview
+function renderPrdMarkdown() {
+  const renderContainer = document.getElementById('prd-markdown-render');
+  if (!renderContainer) return;
+  const md = compilePrdMarkdownString();
+  if (markedModule && markedModule.parse) {
+    renderContainer.innerHTML = markedModule.parse(md);
+  } else {
+    renderContainer.textContent = md;
+  }
+}
+
+// Render Step 3 Functions Table Rows
+function renderPrdFunctionsTable() {
+  const tbody = document.querySelector('#prd-functions-table tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  state.prd.functions.forEach((f, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${f.name}" data-idx="${index}" class="func-name-in" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;"></td>
+      <td><input type="text" value="${f.io}" data-idx="${index}" class="func-io-in" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;"></td>
+      <td>
+        <select data-idx="${index}" class="func-priority-in" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;">
+          <option value="高" ${f.priority === '高' ? 'selected' : ''}>高</option>
+          <option value="中" ${f.priority === '中' ? 'selected' : ''}>中</option>
+          <option value="低" ${f.priority === '低' ? 'selected' : ''}>低</option>
+        </select>
+      </td>
+      <td style="text-align: center;"><input type="checkbox" ${f.mvp ? 'checked' : ''} data-idx="${index}" class="func-mvp-in"></td>
+      <td style="text-align: center;"><button class="btn btn-danger btn-sm btn-secondary delete-func-btn" data-idx="${index}" style="padding: 0.25rem 0.4rem; color: var(--color-error); border: 1px solid rgba(244, 63, 94, 0.15);">&times;</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Bind change listeners on dynamically added fields
+  tbody.querySelectorAll('.func-name-in').forEach(el => {
+    el.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      state.prd.functions[idx].name = e.target.value;
+      saveState();
+    });
+  });
+
+  tbody.querySelectorAll('.func-io-in').forEach(el => {
+    el.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      state.prd.functions[idx].io = e.target.value;
+      saveState();
+    });
+  });
+
+  tbody.querySelectorAll('.func-priority-in').forEach(el => {
+    el.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      state.prd.functions[idx].priority = e.target.value;
+      saveState();
+    });
+  });
+
+  tbody.querySelectorAll('.func-mvp-in').forEach(el => {
+    el.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      state.prd.functions[idx].mvp = e.target.checked;
+      saveState();
+    });
+  });
+
+  tbody.querySelectorAll('.delete-func-btn').forEach(el => {
+    el.addEventListener('click', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      state.prd.functions.splice(idx, 1);
+      saveState();
+      renderPrdFunctionsTable();
+    });
+  });
+}
+
+// Chat Messages Render
+function renderChatMessages() {
+  const container = document.getElementById('s8-chat-messages');
+  if (!container) return;
+  container.innerHTML = '';
+
+  state.chatbot.messages.forEach(msg => {
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${msg.sender}`;
+    bubble.textContent = msg.text;
+    container.appendChild(bubble);
+  });
+
+  container.scrollTop = container.scrollHeight;
+}
+
+// Preset persona automated responses simulator
+function getPersonaResponse(persona, text) {
+  const t = text.toLowerCase();
+  
+  if (persona === 'Indie Hacker') {
+    if (t.includes('数据') || t.includes('隐私') || t.includes('安全')) {
+      return '兄弟，我用的是全本地加密存储（Local-First），密钥就存在你手机的安全硬件里，我的云端压根不存明文，敏感数据永不无密上传！绝对保护数据主权！';
+    }
+    if (t.includes('付费') || t.includes('多少钱') || t.includes('变现')) {
+      return '基础功能永久免费！只要 1 元即可解锁高级数字分身和数据同步。首批 1000 个种子用户，冲就完事了！已在即刻/小红书发布！';
+    }
+    return '明白！我就是为了解决臃肿多步的授权和隐私侵入而生的。本地离线可用，开箱即用，极速体验，帮你在 15 秒内打通核心闭环！';
+  }
+  
+  if (persona === 'Cyberpunk Hacker') {
+    if (t.includes('加密') || t.includes('安全') || t.includes('后门')) {
+      return '⚠️ ACCESS RESTRICTED. 采用 AES-256 GCM 强混淆对本端数据库物理落盘。不挂载任何外部分析服务，零网络侦听，主权自治等级：Max. 谁也撬不开你的数据。';
+    }
+    if (t.includes('代码') || t.includes('怎么做')) {
+      return '核心逻辑层 (Core Engine) 与 UI 层完美剥离，纯 JS 通用计算，跑通了 CLI 自动化单元测试。没有任何臃肿框架的垃圾依赖。';
+    }
+    return '01 01 01... 赛博浪潮滚滚向前，我们在底层重构规则。数据只属于用户自己，这就是极客正义。别跟我提中心化服务器，那都是累赘。';
+  }
+
+  if (persona === 'Academic Researcher') {
+    if (t.includes('为什么') || t.includes('原理')) {
+      return '从认知负荷理论与隐私主权第一性原理分析，过往方案由于网络强依赖和多次重授权，导致了大量的流失率。我们强制物理隔离 API 鉴权，实现了去中心化本地状态自治，具有极高的理论鲁棒性。';
+    }
+    return '本系统建立在低成本敏捷开发范式之上。通过对系统拓扑结构进行层级划分（Core, Auth, Presentation），能获得极佳的容错度与解耦可复用性。';
+  }
+
+  if (persona === '1-Yuan Store Seller') {
+    return '🎉 破盘大减价！一元买不了吃亏，一元买不了上当！全本地基础版 100% 永久免费，一元单次支付直接解锁云端高算力，超划算，快快点击解锁体验！';
+  }
+
+  return '你好！数据主权万岁，本地优先万岁！';
+}
+
+// 14-Day Calendar Grid Rendering
+function renderDaysGrid() {
+  const grid = document.getElementById('days-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  SPRINT_SCHEDULE.forEach(dayInfo => {
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+    cell.dataset.day = dayInfo.day;
+    cell.innerHTML = `
+      <span class="day-num">${dayInfo.day}</span>
+      <span class="day-label">${dayInfo.title.substring(0, 3)}</span>
+    `;
+
+    cell.addEventListener('click', () => {
+      openDayDetailDialog(dayInfo);
+    });
+
+    grid.appendChild(cell);
+  });
+}
+
+// Dialog Controller
+function openDayDetailDialog(dayInfo) {
+  const dialog = document.getElementById('day-detail-dialog');
+  const title = document.getElementById('dialog-day-title');
+  const desc = document.getElementById('dialog-day-desc');
+  const checklistArea = document.getElementById('dialog-day-checklist-area');
+
+  if (!dialog || !title || !desc || !checklistArea) return;
+
+  title.textContent = `Day ${dayInfo.day} - ${dayInfo.title}`;
+  desc.textContent = dayInfo.desc;
+  
+  // Render Checkboxes
+  checklistArea.innerHTML = '';
+  dayInfo.tasks.forEach(t => {
+    const isChecked = !!state.checklist[t.id];
+    
+    const label = document.createElement('label');
+    label.style.display = 'flex';
+    label.style.alignItems = 'flex-start';
+    label.style.gap = '0.5rem';
+    label.style.cursor = 'pointer';
+    label.style.fontWeight = 'normal';
+    label.style.fontSize = '0.85rem';
+    label.style.color = isChecked ? 'var(--text-secondary)' : 'var(--text-primary)';
+    
+    if (isChecked) {
+      label.style.textDecoration = 'line-through';
+    }
+
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.checked = isChecked;
+    check.style.marginTop = '0.2rem';
+    
+    check.addEventListener('change', () => {
+      state.checklist[t.id] = check.checked;
+      saveState();
+      
+      // Update dialog appearance immediately
+      if (check.checked) {
+        label.style.textDecoration = 'line-through';
+        label.style.color = 'var(--text-secondary)';
+      } else {
+        label.style.textDecoration = 'none';
+        label.style.color = 'var(--text-primary)';
+      }
+    });
+
+    label.appendChild(check);
+    const span = document.createElement('span');
+    span.textContent = t.label;
+    label.appendChild(span);
+    
+    checklistArea.appendChild(label);
+  });
+
+  dialog.showModal();
+}
+
+// Initialize Sidebar steps list
+function renderStepsList() {
+  const list = document.getElementById('step-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  STEPS_DATA.forEach((s, idx) => {
+    const node = document.createElement('div');
+    node.className = `step-node ${idx === state.stepIndex ? 'active' : ''}`;
+    node.innerHTML = `
+      <span class="step-num">${s.id}</span>
+      <span class="step-label">${s.title}</span>
+      <span class="step-status-icon">✓</span>
+    `;
+
+    node.addEventListener('click', () => {
+      state.stepIndex = idx;
+      saveState();
+      renderActiveStepPanel();
+    });
+
+    list.appendChild(node);
+  });
+}
+
+// Dialog Light-dismiss Fallback (from modern-web-guidance)
+function initDialogFallback() {
+  const dialog = document.getElementById('day-detail-dialog');
+  const closeBtn = document.getElementById('close-dialog-btn');
+
+  if (closeBtn && dialog) {
+    closeBtn.addEventListener('click', () => dialog.close());
+  }
+
+  if (dialog && !('closedBy' in HTMLDialogElement.prototype)) {
+    dialog.addEventListener('click', (event) => {
+      if (event.target !== dialog) return;
+      const rect = dialog.getBoundingClientRect();
+      const isDialogContent = (
+        rect.top <= event.clientY &&
+        event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX &&
+        event.clientX <= rect.left + rect.width
+      );
+      if (isDialogContent) return;
+      dialog.close();
+    });
+  }
+}
+
+// Local Sync functions
+function initSyncManager() {
+  const expBtn = document.getElementById('export-workspace-btn');
+  const impBtn = document.getElementById('import-workspace-btn');
+  const fileInput = document.getElementById('workspace-file-input');
+  const resetBtn = document.getElementById('reset-workspace-btn');
+
+  if (expBtn) {
+    expBtn.addEventListener('click', () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `solo_agency_project_${state.prd.name || 'unnamed'}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      document.body.removeChild(downloadAnchor);
+    });
+  }
+
+  if (impBtn && fileInput) {
+    impBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const imported = JSON.parse(event.target.result);
+          state = { ...DEFAULT_STATE, ...imported };
+          saveState();
+          alert('项目配置备份恢复成功！');
+          
+          // Re-render everything
+          renderStepsList();
+          renderActiveStepPanel();
+          renderDaysGrid();
+          updateSprintProgress();
+        } catch (err) {
+          alert('解析备份 JSON 文件失败，请确保格式正确！');
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (confirm('⚠️ 警告：确定清空全部项目进度与 PRD 表单数据吗？该操作不可逆，建议先备份项目！')) {
+        localStorage.removeItem('solo_agency_state');
+        loadState();
+        alert('工作区数据已全部重置！');
+        renderStepsList();
+        renderActiveStepPanel();
+        renderDaysGrid();
+        updateSprintProgress();
+      }
+    });
+  }
+}
+
+// Navigation Row controls
+function initNavigationControls() {
+  const prev = document.getElementById('prev-step-btn');
+  const next = document.getElementById('next-step-btn');
+  const goStep11 = document.getElementById('s10-go-step11-btn');
+
+  const shiftStep = (offset) => {
+    const newIdx = state.stepIndex + offset;
+    if (newIdx >= 0 && newIdx < STEPS_DATA.length) {
+      state.stepIndex = newIdx;
+      saveState();
+      renderActiveStepPanel();
+      renderStepsList();
+    }
+  };
+
+  if (prev) prev.addEventListener('click', () => shiftStep(-1));
+  if (next) next.addEventListener('click', () => shiftStep(1));
+  
+  // Custom navigation
+  document.body.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 's10-go-step11-btn') {
+      state.stepIndex = 10; // Step 11 is index 10
+      saveState();
+      renderActiveStepPanel();
+      renderStepsList();
+    }
+  });
+}
+
+// Main Bootloader
+async function boot() {
+  // 1. Load LocalStorage State
+  loadState();
+
+  // 2. Load External libraries via CDN async
+  await loadLibraries();
+
+  // 3. Render DOM structures
+  renderStepsList();
+  renderDaysGrid();
+  renderActiveStepPanel();
+
+  // 4. Bind Global controls
+  initDialogFallback();
+  initSyncManager();
+  initNavigationControls();
+
+  // 5. Update timeline progress
+  updateSprintProgress();
+}
+
+// Execute boot when document is ready
+document.addEventListener('DOMContentLoaded', boot);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>自家版初中知识库 · 知识点节点＋先修边＋错因回溯</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #171a24;
+    --panel-2: #1e2230;
+    --border: #2a3042;
+    --text: #eef0f6;
+    --muted: #949cb0;
+    --math: #38bdf8;
+    --eng: #f59e0b;
+    --chn: #10b981;
+    --hard: #f43f5e;
+    --soft: #64748b;
+    --ok: #22c55e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font: 14px/1.6 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 24px 20px 60px; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid var(--border); padding-bottom: 18px; margin-bottom: 20px; }
+  h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .nav-tabs { display: flex; gap: 8px; }
+  .tab-btn { background: var(--panel); border: 1px solid var(--border); color: var(--muted); padding: 9px 18px; border-radius: 9px; cursor: pointer; font-weight: 600; font-size: 13px; transition: .15s; }
+  .tab-btn.active { background: var(--math); color: #081119; border-color: var(--math); }
+
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .stat-val { font-size: 26px; font-weight: 700; font-family: ui-monospace, monospace; }
+  .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+  .search-input { flex: 1; min-width: 220px; background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 9px; font-size: 14px; outline: none; }
+  .search-input:focus { border-color: var(--math); }
+  .pill { background: var(--panel); border: 1px solid var(--border); color: var(--muted); padding: 7px 14px; border-radius: 999px; font-size: 13px; cursor: pointer; }
+  .pill.active { background: var(--text); color: var(--bg); font-weight: 600; border-color: var(--text); }
+
+  .main-grid { display: grid; grid-template-columns: 1fr 440px; gap: 18px; align-items: start; }
+  @media (max-width: 920px) { .main-grid { grid-template-columns: 1fr; } }
+
+  .node-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; max-height: 680px; overflow-y: auto; padding-right: 4px; }
+  .node-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: .15s; }
+  .node-card:hover { border-color: var(--muted); transform: translateY(-1px); }
+  .node-card.selected { border-color: var(--math); background: var(--panel-2); }
+  .badge-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; }
+  .subj-badge { padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 12px; }
+  .subj-数学 { background: rgba(56,189,248,.15); color: var(--math); }
+  .subj-英语 { background: rgba(245,158,11,.15); color: var(--eng); }
+  .subj-语文 { background: rgba(16,185,129,.15); color: var(--chn); }
+  .status-tag { font-size: 12px; color: var(--muted); font-family: ui-monospace, monospace; }
+  .status-已入库 { color: var(--ok); font-weight: 600; }
+  .status-待校准 { color: var(--eng); }
+  .node-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .node-loc { font-size: 12px; color: var(--muted); }
+
+  .detail-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; position: sticky; top: 16px; }
+  .detail-id { font-family: ui-monospace, monospace; font-size: 12px; color: var(--math); }
+  .detail-title { font-size: 20px; font-weight: 700; margin: 4px 0 12px; }
+  .field-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; padding: 11px 13px; margin-bottom: 10px; }
+  .field-lbl { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+  .chain-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .chain-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--border); padding: 8px 11px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .chain-item:hover { border-color: var(--math); }
+  .edge-hard { color: var(--hard); font-size: 12px; font-weight: 600; }
+  .edge-soft { color: var(--soft); font-size: 12px; }
+
+  /* Game View */
+  .game-wrap { max-width: 760px; margin: 0 auto; background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .level-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+  .lvl-pill { padding: 5px 10px; border-radius: 6px; font-size: 12px; background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); cursor: pointer; }
+  .lvl-pill.current { border-color: var(--math); color: var(--math); font-weight: 700; }
+  .lvl-pill.passed { background: rgba(34,197,94,.18); border-color: var(--ok); color: var(--ok); }
+  .q-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 14px 0; }
+  .q-text { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .opt-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px 16px; border-radius: 9px; font-size: 15px; cursor: pointer; text-align: left; transition: .15s; }
+  .opt-btn:hover { border-color: var(--math); }
+  .opt-btn.correct { background: rgba(34,197,94,.2); border-color: var(--ok); color: var(--ok); }
+  .opt-btn.wrong { background: rgba(244,63,94,.2); border-color: var(--hard); color: var(--hard); }
+  .feedback-box { margin-top: 14px; padding: 12px 14px; border-radius: 9px; background: var(--bg); border-left: 3px solid var(--math); font-size: 13.5px; display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>自家版初中知识库 · Junior Knowledge Base</h1>
+      <div class="sub">数学（青岛版）· 英语（外研版）· 语文（统编版）七年级上册 —— 知识点节点 ＋ 先修边 ＋ 错因回溯</div>
+    </div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="tabGraph">知识图谱与回溯查询</button>
+      <button class="tab-btn" id="tabGame">回溯大冒险 · 有理数岛（闯关）</button>
+    </div>
+  </header>
+
+  <div id="viewGraph">
+    <div class="stats-row" id="statsRow"></div>
+    <div class="toolbar">
+      <input type="text" class="search-input" id="searchInput" placeholder="搜索节点编号、名称、定义或真实错因（例如：数轴、绝对值、there be、修辞）..." />
+      <button class="pill active" data-subj="ALL">全部科目</button>
+      <button class="pill" data-subj="数学">数学（青岛版）</button>
+      <button class="pill" data-subj="英语">英语（外研版）</button>
+      <button class="pill" data-subj="语文">语文（统编版）</button>
+      <button class="pill" data-status="已入库">★ 仅看已入库/待校准</button>
+    </div>
+
+    <div class="main-grid">
+      <div class="node-list" id="nodeList"></div>
+      <div class="detail-panel" id="detailPanel"></div>
+    </div>
+  </div>
+
+  <div id="viewGame" style="display:none">
+    <div class="game-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div>
+          <h2 style="margin:0;font-size:20px" id="gameTitle"></h2>
+          <div class="sub" id="gameChapter"></div>
+        </div>
+        <span style="font-size:12px;color:var(--math);background:rgba(56,189,248,.12);padding:5px 10px;border-radius:6px">答错自动触发先修节点回溯</span>
+      </div>
+      <div class="level-pills" id="levelPills"></div>
+      <div class="q-box">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px" id="qMeta"></div>
+        <div class="q-text" id="qText"></div>
+        <div class="opt-grid" id="optGrid"></div>
+        <div class="feedback-box" id="feedbackBox"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const NODES = [{"id": "wy-e7a-S1", "subject": "英语", "name": "名词·冠词·数字（预备）", "loc": "Starter Get ready", "type": "语法", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-S2", "subject": "英语", "name": "there be 结构与基本句式", "loc": "Starter Know your school", "type": "语法", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-S3", "subject": "英语", "name": "一般现在时·预热", "loc": "Starter Get ready", "type": "语法", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-G1", "subject": "英语", "name": "代词 Pronouns", "loc": "Unit 1", "type": "语法", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-G2", "subject": "英语", "name": "一般现在时", "loc": "Unit 2", "type": "语法", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-G3", "subject": "英语", "name": "名词所有格 Possessive nouns", "loc": "Unit 3", "type": "语法", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-G4", "subject": "英语", "name": "频率副词", "loc": "Unit 4", "type": "语法", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-G5", "subject": "英语", "name": "一般将来时", "loc": "Unit 5", "type": "语法", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-G6", "subject": "英语", "name": "现在进行时", "loc": "Unit 6", "type": "语法", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-P1", "subject": "英语", "name": "/ɑː/ /æ/ /e/", "loc": "Unit 1 语音", "type": "语音", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-P2", "subject": "英语", "name": "/iː/ /ɪ/ /i/", "loc": "Unit 2 语音", "type": "语音", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-P3", "subject": "英语", "name": "/uː/ /ʊ/ /ʌ/", "loc": "Unit 3 语音", "type": "语音", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-P4", "subject": "英语", "name": "/ɔː/ /ɒ/", "loc": "Unit 4 语音", "type": "语音", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-P5", "subject": "英语", "name": "/eɪ/ /aɪ/ /ɔɪ/ 双元音", "loc": "Unit 5 语音", "type": "语音", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-P6", "subject": "英语", "name": "/ɜː/ /ə/", "loc": "Unit 6 语音", "type": "语音", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "wy-e7a-U2-V", "subject": "英语", "name": "核心词汇 6（computer、sometimes、moment、opera、idea、autumn）", "loc": "Unit 2 词汇", "type": "词汇", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "核心", "part_of": ""}, {"id": "wy-e7a-U2-K1", "subject": "英语", "name": "come out of（从……出来）", "loc": "Unit 2 知识点", "type": "短语", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "核心", "part_of": ""}, {"id": "wy-e7a-U2-K2", "subject": "英语", "name": "as 作介词（作为、当作）", "loc": "Unit 2 知识点", "type": "词义", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "核心", "part_of": ""}, {"id": "wy-e7a-U2-K3", "subject": "英语", "name": "so much＋不可数／so many＋可数复数", "loc": "Unit 2 知识点", "type": "辨析", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "核心", "part_of": ""}, {"id": "wy-e7a-U2-K4", "subject": "英语", "name": "different／be different from；kind 家族", "loc": "Unit 2 知识点", "type": "辨析", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "核心", "part_of": ""}, {"id": "wy-e7a-U2-K5", "subject": "英语", "name": "rush／rush into（冲进）", "loc": "Unit 2 知识点", "type": "短语", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "核心", "part_of": ""}, {"id": "wy-e7a-U2-K6", "subject": "英语", "name": "decide to do sth.（不定式）", "loc": "Unit 2 知识点", "type": "句法", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "核心", "part_of": ""}, {"id": "wy-e7a-U2-K7", "subject": "英语", "name": "take part in 与 join 的分工", "loc": "Unit 2 知识点", "type": "辨析", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "核心", "part_of": ""}, {"id": "wy-e7a-U2-K8", "subject": "英语", "name": "nod to sb.（nodding 双写）", "loc": "Unit 2 知识点", "type": "短语", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "核心", "part_of": ""}, {"id": "wy-e7a-U2-K9", "subject": "英语", "name": "everybody 作主语 → 动词第三人称单数", "loc": "Unit 2 知识点", "type": "句法", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "核心", "part_of": ""}, {"id": "wy-e7a-U2-PH", "subject": "英语", "name": "重点短语组（44 条）", "loc": "Unit 2 短语", "type": "短语", "level": "节点", "status": "已入库", "source": "学案投喂", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "混合：核心 13／理解 31，明细见英语第一轮文件第四节", "part_of": ""}, {"id": "qd-m7a-A1", "subject": "数学", "name": "有理数概念组", "loc": "第 1 章", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-A2", "subject": "数学", "name": "有理数运算组", "loc": "第 2 章", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-A3", "subject": "数学", "name": "代数式组", "loc": "第 3 章", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-A4", "subject": "数学", "name": "整式组", "loc": "第 4 章", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-A5", "subject": "数学", "name": "方程组", "loc": "第 5 章", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-G1", "subject": "数学", "name": "图形的认识", "loc": "6.1", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-G2", "subject": "数学", "name": "线段、射线和直线", "loc": "6.2", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-G3", "subject": "数学", "name": "线段的比较与运算", "loc": "6.3", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-G4", "subject": "数学", "name": "角", "loc": "6.4", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-G5", "subject": "数学", "name": "角的比较与运算", "loc": "6.5", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-G6", "subject": "数学", "name": "余角和补角", "loc": "6.6", "type": "章组", "level": "骨架组", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-A3b", "subject": "数学", "name": "常量与变量（青岛版特有，自建节点）", "loc": "3.4", "type": "概念", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "人教七上无此点；往后连八年级函数。", "tier": "", "part_of": ""}, {"id": "qd-m7a-P1", "subject": "数学", "name": "小学·认识负数", "loc": "小学", "type": "跨册先修", "level": "先修", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-P2", "subject": "数学", "name": "小学·分数的意义", "loc": "小学", "type": "跨册先修", "level": "先修", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "qd-m7a-101", "subject": "数学", "name": "正数与负数的概念", "loc": "1.1 p3", "type": "概念", "level": "节点", "status": "待校准", "source": "cn-math-taxonomy借鉴", "definition": "在小学认识负数的基础上，明确正数、负数、0 的含义；0 既不是正数也不是负数。", "mastery": "能判断一个数是正数、负数还是 0；能说出 0 的特殊地位。", "diagnostic": "下列数中哪些是负数：-3，0，+2.5，-1/2？（答：-3 和 -1/2）", "root_note": "判断错多半错在 0 的归属，回本节定义即可。", "tier": "", "part_of": "qd-m7a-A1"}, {"id": "qd-m7a-102", "subject": "数学", "name": "用正负数表示相反意义的量", "loc": "1.1 p3", "type": "应用", "level": "节点", "status": "待校准", "source": "cn-math-taxonomy借鉴", "definition": "用正数和负数表示具有相反意义的量，如盈亏、增减、海拔高低。", "mastery": "能把实际情境中的相反量用正负数表示；能解释正负数在情境中的含义。", "diagnostic": "若向东走 5 m 记作 +5 m，则 -3 m 表示什么？（答：向西走 3 m）", "root_note": "错在基准没定：先问以什么为 0、哪个方向为正，再谈符号。", "tier": "", "part_of": "qd-m7a-A1"}, {"id": "qd-m7a-103", "subject": "数学", "name": "有理数的分类", "loc": "1.2 p7", "type": "概念", "level": "节点", "status": "待校准", "source": "cn-math-taxonomy借鉴", "definition": "整数和分数统称有理数；会按整数/分数或正数/0/负数两种方式分类。", "mastery": "能说出有理数的定义；能按两种标准分类。", "diagnostic": "把 -2，0，3.5，-1/3，7 按正数、0、负数分类。（答：正数 3.5，7；0；负数 -2，-1/3）", "root_note": "分类错先查两个口子：0 的归属（回 101）；有限/循环小数算不算分数（回小学分数意义）。", "tier": "", "part_of": "qd-m7a-A1"}, {"id": "qd-m7a-104", "subject": "数学", "name": "数轴", "loc": "1.3 p10", "type": "概念", "level": "节点", "status": "待校准", "source": "cn-math-taxonomy借鉴", "definition": "规定了原点、正方向和单位长度的直线叫数轴。", "mastery": "能说出数轴三要素；能判断一条直线是不是数轴。", "diagnostic": "画数轴只有原点和正方向，缺哪一要素就不合格？（答：单位长度）", "root_note": "105–109 的错有一半源头在此：单位长度不统一会让表示、比较全跟着错。", "tier": "", "part_of": "qd-m7a-A1"}, {"id": "qd-m7a-105", "subject": "数学", "name": "在数轴上表示有理数", "loc": "1.3 p10", "type": "程序", "level": "节点", "status": "待校准", "source": "cn-math-taxonomy借鉴", "definition": "会在数轴上画出表示给定有理数的点，并读出数轴上点所表示的数。", "mastery": "能在数轴上标出整数、小数、分数；能读出点对应的数。", "diagnostic": "在数轴上标出 -1.5 和 2 的位置，哪个更靠右？（答：2）", "root_note": "标错位先回 103 确认这个数是什么，再回 104 查单位长度。", "tier": "", "part_of": "qd-m7a-A1"}, {"id": "qd-m7a-106", "subject": "数学", "name": "相反数", "loc": "1.4 p14", "type": "概念", "level": "节点", "status": "待校准", "source": "cn-math-taxonomy借鉴", "definition": "只有符号不同的两个数互为相反数；在数轴上位于原点两侧且到原点距离相等；0 的相反数是 0。", "mastery": "能求一个数的相反数；理解 -(-a)=a 的含义。", "diagnostic": "求 -7 和 3/4 的相反数，并化简 -(-5)。（答：7；-3/4；5）", "root_note": "多重符号化简错回数轴看：相反数就是原点对称点，套两层回到自己。", "tier": "", "part_of": "qd-m7a-A1"}, {"id": "qd-m7a-107", "subject": "数学", "name": "绝对值的概念与几何意义", "loc": "1.4 p14", "type": "概念", "level": "节点", "status": "待校准", "source": "cn-math-taxonomy借鉴", "definition": "数轴上表示数 a 的点到原点的距离叫做 a 的绝对值，记作 |a|，其值非负。", "mastery": "能说出绝对值的几何意义；知道互为相反数的两数绝对值相等。", "diagnostic": "|-4| 与 |4| 分别是多少？（答：都等于 4）", "root_note": "本章回溯终点：把绝对值理解成去掉负号（口诀）还是到原点的距离（根），在此分流。", "tier": "", "part_of": "qd-m7a-A1"}, {"id": "qd-m7a-108", "subject": "数学", "name": "绝对值的化简与计算", "loc": "1.4 p14", "type": "程序", "level": "节点", "status": "待校准", "source": "cn-math-taxonomy借鉴", "definition": "按正数取本身、负数取相反数、0 取 0 的法则求绝对值并作简单化简。", "mastery": "能熟练求有理数的绝对值；能由 |x|=a 求 x。", "diagnostic": "若 |x|=3，求 x。（答：x=3 或 x=-3）", "root_note": "|x|=a 只写一个解，是 106、107 没吃透的典型信号。", "tier": "", "part_of": "qd-m7a-A1"}, {"id": "qd-m7a-109", "subject": "数学", "name": "有理数的大小比较", "loc": "1.5 p19", "type": "程序", "level": "节点", "status": "待校准", "source": "cn-math-taxonomy借鉴", "definition": "利用数轴（右边的数大）和绝对值（两个负数，绝对值大的反而小）比较有理数大小。", "mastery": "会用数轴比较大小；会比较两个负数的大小。", "diagnostic": "比较 -2/3 与 -3/4 的大小。（答：-2/3 > -3/4）", "root_note": "两个负数比大小错，顺链回查：108 → 107 → 105。本章回溯主干。", "tier": "", "part_of": "qd-m7a-A1"}, {"id": "tb-c7a-R1", "subject": "语文", "name": "写景散文：借景抒情", "loc": "第一单元", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-R2", "subject": "语文", "name": "叙事散文：事件与中心", "loc": "第二、三、四单元", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-R3", "subject": "语文", "name": "文言入门：断句、实词、直译", "loc": "世说新语/论语/诫子书/狼", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-R4", "subject": "语文", "name": "诗歌：意象与情感、诵读", "loc": "古代诗歌四首+课外诵读", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-R5", "subject": "语文", "name": "小说与想象：情节、人物、寓意", "loc": "第六单元+第五单元", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-R6", "subject": "语文", "name": "名著：精读/略读/浏览", "loc": "朝花夕拾、西游记", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-W1", "subject": "语文", "name": "写作·观察", "loc": "第一单元写作", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-W2", "subject": "语文", "name": "写作·记事", "loc": "第二单元写作", "type": "能力", "level": "已入库", "status": "已入库", "source": "投喂校准：学校作文评分细则照片（2026-11-04，去校名存档于 intake/）", "definition": "记叙文写作。学校评分按三项计分（细则全文见 intake/2026-11-04-作文评分细则.md）：主题与内容 25 分、结构与表达 20 分、书写与标点 5 分。", "mastery": "一等线：主题与内容——意图明确、内容具体充实、有真情实感与自己的思考体悟；结构与表达——叙事完整、重点突出、描写具体、语言准确生动；书写与标点——书写规范、卷面整洁、标点正确。", "diagnostic": "写完对照细则自查三问：①中心是否明确、内容是否具体充实（主题与内容）；②叙事是否完整、重点是否突出、详略是否得当（结构与表达）；③卷面与标点是否过关（书写与标点）。", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-W3", "subject": "语文", "name": "写作·突出中心", "loc": "第三单元写作", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-W4", "subject": "语文", "name": "写作·思路清晰", "loc": "第四单元写作", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-W5", "subject": "语文", "name": "写作·记录（活动探究）", "loc": "第五单元任务三", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-W6", "subject": "语文", "name": "写作·联想和想象", "loc": "第六单元写作", "type": "能力", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-A01", "subject": "语文", "name": "观沧海", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A02", "subject": "语文", "name": "次北固山下", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A03", "subject": "语文", "name": "闻王昌龄左迁龙标遥有此寄", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A04", "subject": "语文", "name": "天净沙·秋思", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A05", "subject": "语文", "name": "咏雪", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A06", "subject": "语文", "name": "陈太丘与友期行", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A07", "subject": "语文", "name": "论语十二章", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A08", "subject": "语文", "name": "诫子书", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A09", "subject": "语文", "name": "狼", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A10", "subject": "语文", "name": "峨眉山月歌", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A11", "subject": "语文", "name": "江南逢李龟年", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A12", "subject": "语文", "name": "行军九日思长安故园", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A13", "subject": "语文", "name": "夜上受降城闻笛", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A14", "subject": "语文", "name": "秋词（其一）", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A15", "subject": "语文", "name": "夜雨寄北", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A16", "subject": "语文", "name": "十一月四日风雨大作（其二）", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-A17", "subject": "语文", "name": "潇关", "loc": "古诗文积累线", "type": "篇目", "level": "骨架", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "先修：小学古诗文积累（tb-c7a-P2）", "tier": "", "part_of": ""}, {"id": "tb-c7a-P1", "subject": "语文", "name": "小学·阅读理解", "loc": "小学", "type": "跨册先修", "level": "先修", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}, {"id": "tb-c7a-P2", "subject": "语文", "name": "小学·古诗文积累", "loc": "小学", "type": "跨册先修", "level": "先修", "status": "骨架", "source": "目录自采", "definition": "", "mastery": "", "diagnostic": "", "root_note": "", "tier": "", "part_of": ""}];
+const EDGES = [{"from": "wy-e7a-S1", "to": "wy-e7a-S2", "strength": "软", "note": ""}, {"from": "wy-e7a-S1", "to": "wy-e7a-G3", "strength": "硬", "note": "先有可数/复数概念"}, {"from": "wy-e7a-S1", "to": "wy-e7a-U2-K3", "strength": "硬", "note": "可数性"}, {"from": "wy-e7a-G1", "to": "wy-e7a-G2", "strength": "硬", "note": "主语人称决定动词形式"}, {"from": "wy-e7a-G2", "to": "wy-e7a-G4", "strength": "硬", "note": ""}, {"from": "wy-e7a-G2", "to": "wy-e7a-G5", "strength": "硬", "note": "对照立时态概念"}, {"from": "wy-e7a-G2", "to": "wy-e7a-G6", "strength": "硬", "note": "对照"}, {"from": "wy-e7a-G2", "to": "wy-e7a-U2-K9", "strength": "硬", "note": "U2 内部回溯 G2 的第一个落点"}, {"from": "wy-e7a-G2", "to": "wy-e7a-G3", "strength": "软", "note": ""}, {"from": "wy-e7a-G1", "to": "wy-e7a-G6", "strength": "软", "note": ""}, {"from": "wy-e7a-U2-V", "to": "wy-e7a-G4", "strength": "硬", "note": "sometimes 同词先现于 U2、U4 成点"}, {"from": "wy-e7a-U2-K3", "to": "wy-e7a-U2-K4", "strength": "软", "note": ""}, {"from": "wy-e7a-P1", "to": "wy-e7a-P2", "strength": "软", "note": ""}, {"from": "wy-e7a-P1", "to": "wy-e7a-P3", "strength": "软", "note": ""}, {"from": "wy-e7a-P1", "to": "wy-e7a-P4", "strength": "软", "note": ""}, {"from": "wy-e7a-P1", "to": "wy-e7a-P6", "strength": "软", "note": ""}, {"from": "wy-e7a-P1", "to": "wy-e7a-P5", "strength": "软", "note": "单元音之后"}, {"from": "wy-e7a-P2", "to": "wy-e7a-P5", "strength": "软", "note": ""}, {"from": "wy-e7a-P3", "to": "wy-e7a-P5", "strength": "软", "note": ""}, {"from": "wy-e7a-P4", "to": "wy-e7a-P5", "strength": "软", "note": ""}, {"from": "qd-m7a-A1", "to": "qd-m7a-A2", "strength": "硬", "note": ""}, {"from": "qd-m7a-A2", "to": "qd-m7a-A3", "strength": "硬", "note": ""}, {"from": "qd-m7a-A3", "to": "qd-m7a-A4", "strength": "硬", "note": ""}, {"from": "qd-m7a-A4", "to": "qd-m7a-A5", "strength": "硬", "note": ""}, {"from": "qd-m7a-A2", "to": "qd-m7a-A5", "strength": "硬", "note": ""}, {"from": "qd-m7a-G1", "to": "qd-m7a-G2", "strength": "硬", "note": ""}, {"from": "qd-m7a-G2", "to": "qd-m7a-G3", "strength": "硬", "note": ""}, {"from": "qd-m7a-G4", "to": "qd-m7a-G5", "strength": "硬", "note": ""}, {"from": "qd-m7a-G5", "to": "qd-m7a-G6", "strength": "硬", "note": ""}, {"from": "qd-m7a-P1", "to": "qd-m7a-101", "strength": "硬", "note": ""}, {"from": "qd-m7a-P2", "to": "qd-m7a-103", "strength": "硬", "note": ""}, {"from": "qd-m7a-101", "to": "qd-m7a-102", "strength": "硬", "note": ""}, {"from": "qd-m7a-101", "to": "qd-m7a-103", "strength": "硬", "note": ""}, {"from": "qd-m7a-101", "to": "qd-m7a-104", "strength": "硬", "note": ""}, {"from": "qd-m7a-104", "to": "qd-m7a-105", "strength": "硬", "note": ""}, {"from": "qd-m7a-103", "to": "qd-m7a-105", "strength": "硬", "note": ""}, {"from": "qd-m7a-105", "to": "qd-m7a-106", "strength": "硬", "note": ""}, {"from": "qd-m7a-105", "to": "qd-m7a-107", "strength": "硬", "note": ""}, {"from": "qd-m7a-106", "to": "qd-m7a-107", "strength": "软", "note": ""}, {"from": "qd-m7a-107", "to": "qd-m7a-108", "strength": "硬", "note": ""}, {"from": "qd-m7a-106", "to": "qd-m7a-108", "strength": "硬", "note": ""}, {"from": "qd-m7a-108", "to": "qd-m7a-109", "strength": "硬", "note": ""}, {"from": "tb-c7a-P1", "to": "tb-c7a-R1", "strength": "硬", "note": ""}, {"from": "tb-c7a-P1", "to": "tb-c7a-R2", "strength": "硬", "note": ""}, {"from": "tb-c7a-P2", "to": "tb-c7a-R3", "strength": "硬", "note": ""}, {"from": "tb-c7a-P2", "to": "tb-c7a-R4", "strength": "硬", "note": ""}, {"from": "tb-c7a-R2", "to": "tb-c7a-W3", "strength": "硬", "note": "读到的中心先于写出的中心"}, {"from": "tb-c7a-W1", "to": "tb-c7a-W2", "strength": "硬", "note": ""}, {"from": "tb-c7a-W2", "to": "tb-c7a-W3", "strength": "硬", "note": ""}, {"from": "tb-c7a-W3", "to": "tb-c7a-W4", "strength": "硬", "note": ""}, {"from": "tb-c7a-W2", "to": "tb-c7a-W5", "strength": "软", "note": ""}, {"from": "tb-c7a-R5", "to": "tb-c7a-W6", "strength": "硬", "note": "读想象而后写想象"}, {"from": "tb-c7a-R2", "to": "tb-c7a-R6", "strength": "软", "note": "名著是读法的放大场"}, {"from": "tb-c7a-R5", "to": "tb-c7a-R6", "strength": "软", "note": ""}];
+const GAME = {"title": "回溯大冒险 · 有理数岛", "chapter": "数学（青岛版）七上 第一章 有理数", "levels": [{"id": "qd-m7a-P1", "name": "小学·认识负数", "loc": "小学", "subject": "数学", "definition": "", "root_note": "", "status": "骨架", "prereq": [], "items": {"main": {"options": ["-5℃", "5℃", "+5℃", "0℃"], "q": "温度计上，零下 5 度记作？", "why": "负数就是在数的前面加「-」，表示比 0 还小。"}}}, {"id": "qd-m7a-P2", "name": "小学·分数的意义", "loc": "小学", "subject": "数学", "definition": "", "root_note": "", "status": "骨架", "prereq": [], "items": {"main": {"options": ["1/4", "4/1", "1/3", "4"], "q": "把一个蛋糕平均分成 4 份，其中的 1 份是这个蛋糕的？", "why": "平均分成几份，分母就是几；取 1 份，分子就是 1。"}}}, {"id": "qd-m7a-101", "name": "正数与负数的概念", "loc": "1.1 p3", "subject": "数学", "definition": "在小学认识负数的基础上，明确正数、负数、0 的含义；0 既不是正数也不是负数。", "root_note": "判断错多半错在 0 的归属，回本节定义即可。", "status": "待校准", "prereq": [{"id": "qd-m7a-P1", "strength": "硬"}], "items": {"main": {"options": ["3 个", "2 个", "4 个", "1 个"], "q": "在 -5，0，3，-0.2，8，-1/3 这六个数中，负数有几个？", "why": "0 不是负数（它既不是正数也不是负数），别把它算进去。"}, "repair": {"options": ["0 既不是正数也不是负数", "0 是正数", "0 是负数", "0 表示没有，所以不算数"], "q": "关于 0，下列说法正确的是？", "why": "0 是正数和负数的分界，它自己不站队。"}}}, {"id": "qd-m7a-102", "name": "用正负数表示相反意义的量", "loc": "1.1 p3", "subject": "数学", "definition": "用正数和负数表示具有相反意义的量，如盈亏、增减、海拔高低。", "root_note": "错在基准没定：先问以什么为 0、哪个方向为正，再谈符号。", "status": "待校准", "prereq": [{"id": "qd-m7a-101", "strength": "硬"}], "items": {"main": {"options": ["向西走 3 m", "向东走 3 m", "向西走 5 m", "原地不动"], "q": "若向东走 5 m 记作 +5 m，则 -3 m 表示什么？", "why": "先定基准：向东为正，负号就是反方向，数字是距离。"}, "repair": {"options": ["-150 元", "+150 元", "150 元", "-200 元"], "q": "收入 200 元记作 +200 元，支出 150 元应记作？", "why": "相反意义的量：一个用正，另一个就用负，数字照写实际数量。"}}}, {"id": "qd-m7a-103", "name": "有理数的分类", "loc": "1.2 p7", "subject": "数学", "definition": "整数和分数统称有理数；会按整数/分数或正数/0/负数两种方式分类。", "root_note": "分类错先查两个口子：0 的归属（回 101）；有限/循环小数算不算分数（回小学分数意义）。", "status": "待校准", "prereq": [{"id": "qd-m7a-P2", "strength": "硬"}, {"id": "qd-m7a-101", "strength": "硬"}], "items": {"main": {"options": ["-2 和 -1/3", "只有 -2", "-2 和 0", "-2、0 和 -1/3"], "q": "把 -2，0，3.5，-1/3，7 按正数、0、负数分类，负数是？", "why": "两个口子最容易漏：0 不归负数；-1/3 是分数，但也是负数。"}, "repair": {"options": ["整数", "正数", "负数", "分数"], "q": "0 属于下列哪一类？", "why": "0 是整数，也是有理数，但它不是正数也不是负数。"}}}, {"id": "qd-m7a-104", "name": "数轴", "loc": "1.3 p10", "subject": "数学", "definition": "规定了原点、正方向和单位长度的直线叫数轴。", "root_note": "105–109 的错有一半源头在此：单位长度不统一会让表示、比较全跟着错。", "status": "待校准", "prereq": [{"id": "qd-m7a-101", "strength": "硬"}], "items": {"main": {"options": ["原点、正方向、单位长度", "原点、刻度、箭头", "正数、负数、0", "直线、原点、数字"], "q": "一条合格的数轴必须具备的三要素是？", "why": "三要素缺一不可：原点定位置，正方向定朝向，单位长度定刻度。"}, "repair": {"options": ["单位长度", "负数", "刻度线", "箭头"], "q": "一条直线画了原点和正方向，还缺哪个要素就不算数轴？", "why": "没有单位长度，点和数就对不上号。"}}}, {"id": "qd-m7a-105", "name": "在数轴上表示有理数", "loc": "1.3 p10", "subject": "数学", "definition": "会在数轴上画出表示给定有理数的点，并读出数轴上点所表示的数。", "root_note": "标错位先回 103 确认这个数是什么，再回 104 查单位长度。", "status": "待校准", "prereq": [{"id": "qd-m7a-104", "strength": "硬"}, {"id": "qd-m7a-103", "strength": "硬"}], "items": {"main": {"options": ["-2 与 -1 之间", "-1 与 0 之间", "1 与 2 之间", "-3 与 -2 之间"], "q": "在数轴上，-1.5 应该标在哪一段？", "why": "先看它在谁和谁之间：-1.5 比 -1 小、比 -2 大。"}, "repair": {"options": ["原点右边，距原点 2 个单位", "原点左边，距原点 2 个单位", "原点右边，距原点 1 个单位", "原点正上方"], "q": "数轴上表示 2 的点，位置在？", "why": "正数在原点右边，数字是几就距原点几个单位。"}}}, {"id": "qd-m7a-106", "name": "相反数", "loc": "1.4 p14", "subject": "数学", "definition": "只有符号不同的两个数互为相反数；在数轴上位于原点两侧且到原点距离相等；0 的相反数是 0。", "root_note": "多重符号化简错回数轴看：相反数就是原点对称点，套两层回到自己。", "status": "待校准", "prereq": [{"id": "qd-m7a-105", "strength": "硬"}], "items": {"main": {"options": ["7", "-7", "1/7", "-1/7"], "q": "-7 的相反数是？", "why": "相反数只有符号不同，数字部分照旧；别和倒数搞混。"}, "repair": {"options": ["5", "-5", "0", "25"], "q": "化简 -(-5)，结果是？", "why": "回数轴上看：相反数是原点对称的点，套两层就回到自己。"}}}, {"id": "qd-m7a-107", "name": "绝对值的概念与几何意义", "loc": "1.4 p14", "subject": "数学", "definition": "数轴上表示数 a 的点到原点的距离叫做 a 的绝对值，记作 |a|，其值非负。", "root_note": "本章回溯终点：把绝对值理解成去掉负号（口诀）还是到原点的距离（根），在此分流。", "status": "待校准", "prereq": [{"id": "qd-m7a-105", "strength": "硬"}, {"id": "qd-m7a-106", "strength": "软"}], "items": {"main": {"options": ["4", "-4", "0", "无法确定"], "q": "|-4| 等于多少？", "why": "绝对值是这个数到原点的距离，距离没有负数。"}, "repair": {"options": ["4 和 -4", "只有 4", "只有 -4", "0"], "q": "绝对值等于 4 的数是？", "why": "原点两侧各有一个距原点 4 的点，别漏掉负的那一个。"}}}, {"id": "qd-m7a-108", "name": "绝对值的化简与计算", "loc": "1.4 p14", "subject": "数学", "definition": "按正数取本身、负数取相反数、0 取 0 的法则求绝对值并作简单化简。", "root_note": "|x|=a 只写一个解，是 106、107 没吃透的典型信号。", "status": "待校准", "prereq": [{"id": "qd-m7a-107", "strength": "硬"}, {"id": "qd-m7a-106", "strength": "硬"}], "items": {"main": {"options": ["3 或 -3", "只有 3", "只有 -3", "0"], "q": "若 |x| = 3，则 x 是？", "why": "到原点距离为 3 的点有两个，原点左右各一个。"}, "repair": {"options": ["-2", "2", "0", "4"], "q": "-|-2| 等于多少？", "why": "先算括号里的绝对值：|-2|=2；外面的负号再把它变成 -2。"}}}, {"id": "qd-m7a-109", "name": "有理数的大小比较", "loc": "1.5 p19", "subject": "数学", "definition": "利用数轴（右边的数大）和绝对值（两个负数，绝对值大的反而小）比较有理数大小。", "root_note": "两个负数比大小错，顺链回查：108 → 107 → 105。本章回溯主干。", "status": "待校准", "prereq": [{"id": "qd-m7a-108", "strength": "硬"}], "items": {"main": {"options": ["-2/3 > -3/4", "-2/3 < -3/4", "-2/3 = -3/4", "无法比较"], "q": "比较 -2/3 与 -3/4 的大小，正确的是？", "why": "两个负数比大小：绝对值大的反而小。2/3 的绝对值小，所以它反而大。"}, "repair": {"options": ["-4", "-3.5", "-3", "0"], "q": "下列数中最小的是？", "why": "负数里绝对值越大越小；-4 的绝对值最大，所以它最小。"}}}], "missing_items": [], "kb_source": "knowledge-base/data/nodes.json + edges.json + game/items.json"};
+
+const nodeMap = Object.fromEntries(NODES.map(n => [n.id, n]));
+let filterSubj = 'ALL';
+let onlyCalibrated = false;
+let selectedId = NODES.find(n => n.status === '已入库')?.id || NODES[0].id;
+
+function renderStats() {
+  const mathN = NODES.filter(n => n.subject === '数学').length;
+  const engN = NODES.filter(n => n.subject === '英语').length;
+  const chnN = NODES.filter(n => n.subject === '语文').length;
+  const calN = NODES.filter(n => n.status !== '骨架').length;
+  const hardE = EDGES.filter(e => e.strength === '硬').length;
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${NODES.length}</div><div class="stat-lbl">总知识点节点</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--math)">${mathN}</div><div class="stat-lbl">数学（青岛版七上）</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--eng)">${engN}</div><div class="stat-lbl">英语（外研版七上）</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--chn)">${chnN}</div><div class="stat-lbl">语文（统编版七上）</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--ok)">${calN}</div><div class="stat-lbl">已校准 / 含诊断内容</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--hard)">${EDGES.length} (${hardE}硬)</div><div class="stat-lbl">先修依赖边（硬依赖可回溯）</div></div>
+  `;
+}
+
+function getPrereqs(id) {
+  return EDGES.filter(e => e.to === id && nodeMap[e.from]).map(e => ({ node: nodeMap[e.from], edge: e }));
+}
+
+function getSuccessors(id) {
+  return EDGES.filter(e => e.from === id && nodeMap[e.to]).map(e => ({ node: nodeMap[e.to], edge: e }));
+}
+
+function renderList() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const filtered = NODES.filter(n => {
+    if (filterSubj !== 'ALL' && n.subject !== filterSubj) return false;
+    if (onlyCalibrated && n.status === '骨架') return false;
+    if (!q) return true;
+    return [n.id, n.name, n.loc, n.definition, n.root_note, n.diagnostic].some(f => (f||'').toLowerCase().includes(q));
+  });
+
+  const listEl = document.getElementById('nodeList');
+  listEl.innerHTML = filtered.map(n => `
+    <div class="node-card ${n.id === selectedId ? 'selected' : ''}" data-id="${n.id}">
+      <div class="badge-row">
+        <span class="subj-badge subj-${n.subject}">${n.subject} · ${n.type}</span>
+        <span class="status-tag status-${n.status}">${n.status}</span>
+      </div>
+      <div class="node-name">${n.name}</div>
+      <div class="node-loc">${n.id} · ${n.loc}</div>
+    </div>
+  `).join('') || '<div style="color:var(--muted);padding:20px">没有匹配的节点</div>';
+
+  listEl.querySelectorAll('.node-card').forEach(el => {
+    el.addEventListener('click', () => {
+      selectedId = el.dataset.id;
+      renderList();
+      renderDetail();
+    });
+  });
+}
+
+function renderDetail() {
+  const n = nodeMap[selectedId];
+  if (!n) return;
+  const prereqs = getPrereqs(n.id);
+  const succs = getSuccessors(n.id);
+
+  document.getElementById('detailPanel').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="detail-id">${n.id} · ${n.loc}</span>
+      <span class="subj-badge subj-${n.subject}">${n.subject} / ${n.status}</span>
+    </div>
+    <div class="detail-title">${n.name}</div>
+
+    <div class="field-box">
+      <div class="field-lbl">核心定义（Definition）</div>
+      <div>${n.definition || '<span style="color:var(--muted)">（当前为目录骨架节点，待投喂真实课本/学案材料校准）</span>'}</div>
+    </div>
+
+    ${n.mastery ? `<div class="field-box"><div class="field-lbl">掌握标准（Mastery）</div><div>${n.mastery}</div></div>` : ''}
+    ${n.diagnostic ? `<div class="field-box"><div class="field-lbl">诊断题（Diagnostic）</div><div>${n.diagnostic}</div></div>` : ''}
+    ${n.root_note ? `<div class="field-box" style="border-color:rgba(244,63,94,.4)"><div class="field-lbl" style="color:var(--hard)">错因回溯提示（Root Note）</div><div>${n.root_note}</div></div>` : ''}
+
+    <div style="margin-top:14px">
+      <div class="field-lbl">⬅ 先修节点（如果本节点不会，点击回溯）：</div>
+      <div class="chain-list">
+        ${prereqs.length ? prereqs.map(p => `
+          <div class="chain-item" data-jump="${p.node.id}">
+            <span><b>${p.node.name}</b> <small style="color:var(--muted)">(${p.node.id})</small></span>
+            <span class="${p.edge.strength === '硬' ? 'edge-hard' : 'edge-soft'}">${p.edge.strength}依赖 ${p.edge.note ? '· '+p.edge.note : ''}</span>
+          </div>
+        `).join('') : '<div style="font-size:12px;color:var(--muted)">无前置先修节点（起点）</div>'}
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <div class="field-lbl">➡ 后继节点（掌握本节点后解锁）：</div>
+      <div class="chain-list">
+        ${succs.length ? succs.map(s => `
+          <div class="chain-item" data-jump="${s.node.id}">
+            <span><b>${s.node.name}</b> <small style="color:var(--muted)">(${s.node.id})</small></span>
+            <span class="${s.edge.strength === '硬' ? 'edge-hard' : 'edge-soft'}">${s.edge.strength}依赖</span>
+          </div>
+        `).join('') : '<div style="font-size:12px;color:var(--muted)">当前为链条末端节点</div>'}
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('[data-jump]').forEach(el => {
+    el.addEventListener('click', () => {
+      selectedId = el.dataset.jump;
+      renderList();
+      renderDetail();
+    });
+  });
+}
+
+let curLvlIdx = 0;
+const passedIds = new Set();
+
+function renderGame() {
+  document.getElementById('gameTitle').textContent = GAME.title;
+  document.getElementById('gameChapter').textContent = GAME.chapter;
+  const lvls = GAME.levels;
+  const lvl = lvls[curLvlIdx];
+
+  document.getElementById('levelPills').innerHTML = lvls.map((l, i) => `
+    <button class="lvl-pill ${i === curLvlIdx ? 'current' : ''} ${passedIds.has(l.id) ? 'passed' : ''}" data-idx="${i}">
+      ${i+1}. ${l.name}
+    </button>
+  `).join('');
+
+  document.querySelectorAll('.lvl-pill').forEach(b => {
+    b.addEventListener('click', () => { curLvlIdx = +b.dataset.idx; renderGame(); });
+  });
+
+  const item = lvl.items.main;
+  const correctAns = item.options[0];
+  const shuffled = [...item.options].sort(() => Math.random() - 0.5);
+
+  document.getElementById('qMeta').textContent = `关卡 ${curLvlIdx + 1} / ${lvls.length} · 节点 ${lvl.id} (${lvl.loc})`;
+  document.getElementById('qText').textContent = item.q;
+  const fb = document.getElementById('feedbackBox');
+  fb.style.display = 'none';
+
+  const grid = document.getElementById('optGrid');
+  grid.innerHTML = '';
+  shuffled.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => {
+      if (opt === correctAns) {
+        btn.classList.add('correct');
+        passedIds.add(lvl.id);
+        fb.style.display = 'block';
+        fb.innerHTML = `<b style="color:var(--ok)">✓ 回答正确！</b> ${item.why} <div style="margin-top:8px"><button class="pill active" id="nextLvlBtn">下一关 →</button></div>`;
+        const nb = document.getElementById('nextLvlBtn');
+        if (nb) nb.onclick = () => { if (curLvlIdx < lvls.length - 1) curLvlIdx++; renderGame(); };
+      } else {
+        btn.classList.add('wrong');
+        const preId = lvl.prereq && lvl.prereq[0];
+        const preIdx = lvls.findIndex(x => x.id === preId);
+        fb.style.display = 'block';
+        fb.innerHTML = `<b style="color:var(--hard)">✗ 答错了！触发错因回溯：</b> ${item.why}
+          ${lvl.root_note ? `<div style="margin-top:6px;color:var(--muted)"><b>常见错根：</b>${lvl.root_note}</div>` : ''}
+          ${preIdx >= 0 ? `<div style="margin-top:8px"><button class="pill active" id="backLvlBtn">⬅ 回溯先修关卡：${lvls[preIdx].name}</button></div>` : ''}`;
+        const bb = document.getElementById('backLvlBtn');
+        if (bb) bb.onclick = () => { curLvlIdx = preIdx; renderGame(); };
+      }
+    });
+    grid.appendChild(btn);
+  });
+}
+
+document.querySelectorAll('[data-subj]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-subj]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterSubj = btn.dataset.subj;
+    renderList();
+  });
+});
+
+document.querySelector('[data-status]').addEventListener('click', (e) => {
+  onlyCalibrated = !onlyCalibrated;
+  e.target.classList.toggle('active', onlyCalibrated);
+  renderList();
+});
+
+document.getElementById('searchInput').addEventListener('input', renderList);
+
+document.getElementById('tabGraph').addEventListener('click', () => {
+  document.getElementById('tabGraph').classList.add('active');
+  document.getElementById('tabGame').classList.remove('active');
+  document.getElementById('viewGraph').style.display = 'block';
+  document.getElementById('viewGame').style.display = 'none';
+});
+document.getElementById('tabGame').addEventListener('click', () => {
+  document.getElementById('tabGame').classList.add('active');
+  document.getElementById('tabGraph').classList.remove('active');
+  document.getElementById('viewGame').style.display = 'block';
+  document.getElementById('viewGraph').style.display = 'none';
+  renderGame();
+});
+
+renderStats();
+renderList();
+renderDetail();
+</script>
+</body>
+</html>

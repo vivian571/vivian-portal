@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vivian571 Portal · 一站式开源产品与数字门户</title>
+<meta name="description" content="Vivian571 全部公开项目整合导航站：费曼压力自检、一人公司开发流程看板、CuiMao 360° 视线互动、初中回溯知识库、OPC 语音智能中枢、Muse 高价值案例库、个人博客专栏与 AI 创意 Skill 编译器。" />
+<style>
+  :root {
+    --bg: #0a0c10;
+    --panel: #12151e;
+    --panel-2: #181c28;
+    --border: #252b3d;
+    --text: #eef1f8;
+    --muted: #8b94a8;
+    --accent: #ff6b35;
+    --accent-2: #38bdf8;
+    --ok: #22c55e;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.6 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; -webkit-font-smoothing: antialiased; }
+
+  .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* Top Navigation Bar */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(18, 21, 30, 0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .brand-badge {
+    width: 32px; height: 32px; border-radius: 8px; background: var(--accent); color: #120600;
+    display: flex; align-items: center; justify-content: center; font: 800 15px var(--mono);
+  }
+  .brand-name { font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
+  .brand-sub { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+  .nav-pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .nav-pill {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--muted);
+    padding: 6px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: .15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .nav-pill:hover { color: var(--text); border-color: var(--muted); }
+  .nav-pill.active { background: var(--accent); color: #140600; border-color: var(--accent); font-weight: 700; }
+  .nav-pill .idx { font: 700 11px var(--mono); opacity: 0.75; }
+
+  /* Portal Home View */
+  .home-wrap { max-width: 1280px; margin: 0 auto; padding: 36px 24px 72px; width: 100%; }
+  .hero-banner {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 18px;
+    padding: 32px 36px; margin-bottom: 32px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px;
+  }
+  .hero-tag { font: 700 12px var(--mono); color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+  .hero-title { font-size: 32px; font-weight: 800; margin: 8px 0 10px; line-height: 1.2; }
+  .hero-desc { color: var(--muted); font-size: 15px; max-width: 680px; margin: 0; }
+  .hero-metrics { display: flex; gap: 18px; flex-wrap: wrap; }
+  .metric-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; min-width: 120px; }
+  .metric-box b { display: block; font: 800 24px var(--mono); color: var(--text); }
+  .metric-box span { font-size: 12px; color: var(--muted); }
+
+  .tier-section { margin-bottom: 34px; }
+  .tier-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .tier-title { font-size: 18px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; }
+  .tier-badge { font: 700 12px var(--mono); color: var(--accent-2); background: rgba(56, 189, 248, 0.12); padding: 3px 9px; border-radius: 6px; }
+  .tier-note { font-size: 12.5px; color: var(--muted); }
+
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+  .site-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px;
+    display: flex; flex-direction: column; justify-content: space-between; transition: transform .15s, border-color .15s;
+  }
+  .site-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .card-num { font: 700 12px var(--mono); color: var(--accent); background: rgba(255, 107, 53, 0.12); padding: 3px 8px; border-radius: 6px; }
+  .card-repo { font: 600 12px var(--mono); color: var(--muted); text-decoration: none; }
+  .card-repo:hover { color: var(--text); }
+  .card-title { font-size: 18px; font-weight: 800; margin: 0 0 8px; }
+  .card-desc { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
+  .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tag-chip { font-size: 12px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 6px; }
+  .card-actions { display: flex; gap: 10px; }
+  .btn-launch {
+    flex: 1; background: var(--accent); color: #140600; border: 0; border-radius: 9px;
+    padding: 10px 14px; font-size: 13.5px; font-weight: 700; cursor: pointer; text-align: center; text-decoration: none;
+  }
+  .btn-launch:hover { opacity: 0.92; }
+  .btn-open {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 9px;
+    padding: 10px 14px; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer;
+  }
+  .btn-open:hover { border-color: var(--muted); }
+
+  /* Embedded Sub-site Viewer */
+  .viewer-wrap { display: none; flex: 1; flex-direction: column; height: calc(100vh - 57px); }
+  .viewer-bar {
+    background: var(--panel-2); border-bottom: 1px solid var(--border);
+    padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .viewer-info { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .viewer-frame { flex: 1; width: 100%; border: 0; background: #0d0e12; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="topbar">
+    <div class="brand" id="homeBtn">
+      <div class="brand-badge">V</div>
+      <div>
+        <div class="brand-name">Vivian571 Digital Portal</div>
+        <div class="brand-sub">ALL-IN-ONE OPEN SOURCE WEB HUB</div>
+      </div>
+    </div>
+    <div class="nav-pills" id="topNav"></div>
+  </nav>
+
+  <!-- Portal Matrix Home -->
+  <main class="home-wrap" id="homeView">
+    <section class="hero-banner">
+      <div>
+        <div class="hero-tag">VIVIAN571 · UNIFIED WEB PORTAL</div>
+        <h1 class="hero-title">Vivian 开源应用与数字资产总门户</h1>
+        <p class="hero-desc">将 GitHub 上的 46+ 个开源项目按四大梯队整合为 8 个即开即用的独立 Web 应用。点击任意卡片可在门户内直接沉浸运行，或一键推送至 GitHub Pages 独立上线。</p>
+      </div>
+      <div class="hero-metrics">
+        <div class="metric-box"><b>4</b><span>核心梯队</span></div>
+        <div class="metric-box"><b>8</b><span>在线 Web 站点</span></div>
+        <div class="metric-box"><b>100%</b><span>纯静态零成本部署</span></div>
+      </div>
+    </section>
+
+    <div id="tiersContainer"></div>
+  </main>
+
+  <!-- Active Sub-site Frame View -->
+  <section class="viewer-wrap" id="viewerView">
+    <div class="viewer-bar">
+      <div class="viewer-info">
+        <button class="nav-pill" id="backToPortalBtn">← 返回总门户矩阵</button>
+        <strong id="activeSiteTitle"></strong>
+        <span style="color:var(--muted)" id="activeSiteRepo"></span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a class="nav-pill" id="openNewTabBtn" href="#" target="_blank" rel="noopener">在新标签页独立打开 ↗</a>
+        <a class="nav-pill" id="openGithubBtn" href="#" target="_blank" rel="noopener">GitHub 源码 ↗</a>
+      </div>
+    </div>
+    <iframe class="viewer-frame" id="siteFrame" title="Sub-site Viewer"></iframe>
+  </section>
+</div>
+
+<script>
+const TIERS = [
+  {
+    tier: "第一梯队",
+    title: "极速单页 Web 工具与视觉互动站",
+    note: "零依赖、本地优先、打开即用",
+    sites: [
+      {
+        id: "01",
+        title: "Self-Inquirer · 拆掉假性学会",
+        repo: "vivian571/self-inquirer",
+        file: "01-self-inquirer.html",
+        desc: "极简费曼压力自检单页工具。输入任意技术或学科概念，通过五维作答、含糊词自动扫描与盲区雷达图，3 分钟戳破假性学会。",
+        tags: ["费曼学习法", "五维盲区雷达", "LocalStorage 零上传", "AI 拷问官"]
+      },
+      {
+        id: "02",
+        title: "Solo Agency 2.0 · 一人公司开发看板",
+        repo: "vivian571/solo-agency-dashboard",
+        file: "02-solo-agency-dashboard.html",
+        desc: "基于第一性原理与多智能体协同的独立开发工作台。内置 14 天 MVP 冲刺排期表、升级版 11 步执行手册、PRD 与多角色 Prompt 生成器、EDM 宣传曲歌词生成。",
+        tags: ["14天MVP冲刺", "11步执行手册", "PRD 2.0 生成器", "商业决策沙盒"]
+      },
+      {
+        id: "03",
+        title: "CuiMao · 360° 视线追踪互动艺术页",
+        repo: "vivian571/CuiMao",
+        file: "03-cuimao-interactive.html",
+        desc: "Big Sister is Watching You：移动鼠标或手指，画面中的人物视线会 360° 无缝跟随（156 帧 WebP Sprite + 近距离高清正面凝视切换）。",
+        tags: ["360° 视线追踪", "156帧 WebP Sprite", "自定义光标", "角度校准面板"]
+      }
+    ]
+  },
+  {
+    tier: "第二梯队",
+    title: "垂直知识库、教程与高价值案例导航站",
+    note: "高密度结构化数据、自带长期复利与搜索价值",
+    sites: [
+      {
+        id: "04",
+        title: "自家版初中知识库 & 回溯大冒险闯关",
+        repo: "vivian571/junior-knowledge-base",
+        file: "04-junior-knowledge-base.html",
+        desc: "青岛版数学、外研版英语、统编版语文七年级上册共 83 个知识点节点 + 63 条先修依赖边查询系统，内置「有理数岛」答错自动回溯先修节点的闯关游戏。",
+        tags: ["83个知识节点", "63条先修边", "真实错因回溯", "有理数岛闯关"]
+      },
+      {
+        id: "05",
+        title: "OPC · 一人公司系列教程 & CLI 语音中枢官网",
+        repo: "vivian571/OPC",
+        file: "05-opc-portal.html",
+        desc: "One Person Company 官方门户与命令参考手册：涵盖 AI 模型版图、飞牛 OS 基础设施部署、Harness 工程与 OPC CLI 语音智能中枢。",
+        tags: ["一人公司教程", "OPC CLI 官网", "完整命令文档", "语音智能中枢"]
+      },
+      {
+        id: "06",
+        title: "Muse & AI 智能体真实高价值玩法合集",
+        repo: "vivian571/muse-use-cases",
+        file: "06-muse-ai-use-cases.html",
+        desc: "收录 X / Threads / Reddit 上有明确数字与结果的真实个人智能体案例（砍账单、退订追款、航班索赔、隔夜值机），支持中英双语切换与分类筛选。",
+        tags: ["真实省钱案例", "中英双语切换", "分类检索", "可复制玩法"]
+      }
+    ]
+  },
+  {
+    tier: "第三梯队",
+    title: "个人官方主页与技术博客大本营",
+    note: "整合个人 IP、开源作品集矩阵与深度实战专栏",
+    sites: [
+      {
+        id: "07",
+        title: "Vivian571 个人主页与技术专栏博客",
+        repo: "vivian571/my-personal-blog",
+        file: "07-personal-portfolio-blog.html",
+        desc: "涵盖 16 个代表性开源项目的分类作品集导航（Portfolio），以及《6.02 亿人已经在用 AI 了》与 5 篇云服务器 AI 助手自动化实战复盘全文阅读器。",
+        tags: ["个人品牌主页", "16大开源作品集", "深度技术专栏", "AI 自动化复盘"]
+      }
+    ]
+  },
+  {
+    tier: "第四梯队",
+    title: "AI 创意工作台与 Skill 市场编译器",
+    note: "把后台 Prompt/Skill 变成访客填一句话即可生成方案的在线生产力工具",
+    sites: [
+      {
+        id: "08",
+        title: "AI 创意工作台 · 5 大开源 Skill 在线编译器",
+        repo: "vivian571/skills-collection",
+        file: "08-ai-creative-skill-hub.html",
+        desc: "集成「古人说唱 Battle」「火柴人视频导演」「手绘口播视频」「小黑 16:9 怪诞配图」「求是 Skill 九大思想武器」5 大在线生成器，一键输出全套分镜与提示词包。",
+        tags: ["古人说唱 Battle", "火柴人导演", "手绘口播分镜", "小黑正文配图", "求是方法论"]
+      }
+    ]
+  }
+];
+
+const ALL_SITES = TIERS.flatMap(t => t.sites);
+let currentSiteId = null;
+
+function renderTopNav() {
+  const nav = document.getElementById('topNav');
+  nav.innerHTML = `<button class="nav-pill ${currentSiteId === null ? 'active' : ''}" data-id="HOME">🏠 门户总览 (8站)</button>` +
+    ALL_SITES.map(s => `
+      <button class="nav-pill ${currentSiteId === s.id ? 'active' : ''}" data-id="${s.id}">
+        <span class="idx">#${s.id}</span> ${s.title.split('·')[0].trim()}
+      </button>
+    `).join('');
+
+  nav.querySelectorAll('.nav-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      if (id === 'HOME') showHome();
+      else openSite(id);
+    });
+  });
+}
+
+function renderTiers() {
+  const container = document.getElementById('tiersContainer');
+  container.innerHTML = TIERS.map(t => `
+    <section class="tier-section">
+      <div class="tier-head">
+        <h2 class="tier-title"><span class="tier-badge">${t.tier}</span> ${t.title}</h2>
+        <span class="tier-note">${t.note}</span>
+      </div>
+      <div class="cards-grid">
+        ${t.sites.map(s => `
+          <article class="site-card">
+            <div>
+              <div class="card-top">
+                <span class="card-num">SITE #${s.id}</span>
+                <a class="card-repo" href="https://github.com/${s.repo}" target="_blank" rel="noopener">${s.repo} ↗</a>
+              </div>
+              <h3 class="card-title">${s.title}</h3>
+              <p class="card-desc">${s.desc}</p>
+              <div class="card-tags">
+                ${s.tags.map(tag => `<span class="tag-chip">${tag}</span>`).join('')}
+              </div>
+            </div>
+            <div class="card-actions">
+              <button class="btn-launch" data-launch="${s.id}">▶ 在门户内立即运行</button>
+              <a class="btn-open" href="${s.file}" target="_blank" rel="noopener">独立窗口 ↗</a>
+            </div>
+          </article>
+        `).join('')}
+      </div>
+    </section>
+  `).join('');
+
+  container.querySelectorAll('[data-launch]').forEach(btn => {
+    btn.addEventListener('click', () => openSite(btn.dataset.launch));
+  });
+}
+
+function openSite(id) {
+  const site = ALL_SITES.find(s => s.id === id);
+  if (!site) return;
+  currentSiteId = id;
+  renderTopNav();
+  document.getElementById('homeView').style.display = 'none';
+  const vw = document.getElementById('viewerView');
+  vw.style.display = 'flex';
+  document.getElementById('activeSiteTitle').textContent = `#${site.id} ${site.title}`;
+  document.getElementById('activeSiteRepo').textContent = `(${site.repo})`;
+  document.getElementById('openNewTabBtn').href = site.file;
+  document.getElementById('openGithubBtn').href = `https://github.com/${site.repo}`;
+  document.getElementById('siteFrame').src = site.file;
+}
+
+function showHome() {
+  currentSiteId = null;
+  renderTopNav();
+  document.getElementById('viewerView').style.display = 'none';
+  document.getElementById('siteFrame').src = 'about:blank';
+  document.getElementById('homeView').style.display = 'block';
+}
+
+document.getElementById('homeBtn').addEventListener('click', showHome);
+document.getElementById('backToPortalBtn').addEventListener('click', showHome);
+
+renderTopNav();
+renderTiers();
+</script>
+</body>
+</html>

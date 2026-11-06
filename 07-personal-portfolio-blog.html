@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vivian571 · 个人官方主页与技术博客大本营</title>
+<style>
+  :root {
+    --bg: #faf8f5;
+    --card: #ffffff;
+    --ink: #18181b;
+    --muted: #64646e;
+    --line: #e4e2dd;
+    --accent: #c84b31;
+    --accent-soft: rgba(200, 75, 49, 0.1);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--ink);
+    font: 15px/1.65 -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 36px 24px 80px; }
+  header.hero {
+    display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 24px;
+    padding-bottom: 28px; border-bottom: 2px solid var(--ink); margin-bottom: 32px;
+  }
+  .brand-tag { font-family: ui-monospace, monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+  h1 { margin: 6px 0 10px; font-size: 36px; line-height: 1.15; letter-spacing: -0.02em; }
+  .bio { max-width: 640px; color: var(--muted); font-size: 15.5px; margin: 0; }
+  .hero-stats { display: flex; gap: 22px; background: var(--card); border: 1px solid var(--line); padding: 16px 22px; border-radius: 14px; }
+  .hstat b { display: block; font-size: 24px; font-family: ui-monospace, monospace; color: var(--ink); }
+  .hstat span { font-size: 12px; color: var(--muted); }
+
+  .sec-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin: 32px 0 16px; }
+  .sec-title { font-size: 22px; font-weight: 800; margin: 0; }
+  .cat-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cat-btn { background: var(--card); border: 1px solid var(--line); color: var(--muted); padding: 6px 14px; border-radius: 999px; font-size: 13px; cursor: pointer; font-weight: 600; }
+  .cat-btn.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .proj-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; transition: transform .15s, border-color .15s; }
+  .proj-card:hover { transform: translateY(-2px); border-color: var(--ink); }
+  .proj-cat { display: inline-block; font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-soft); padding: 2px 9px; border-radius: 6px; margin-bottom: 8px; }
+  .proj-name { font-size: 17px; font-weight: 700; margin: 0 0 6px; font-family: ui-monospace, monospace; }
+  .proj-desc { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; }
+  .proj-link { font-size: 13px; font-weight: 700; color: var(--ink); text-decoration: none; }
+  .proj-link:hover { color: var(--accent); }
+
+  .blog-layout { display: grid; grid-template-columns: 340px 1fr; gap: 22px; margin-top: 16px; align-items: start; }
+  @media (max-width: 860px) { .blog-layout { grid-template-columns: 1fr; } }
+  .post-list { display: flex; flex-direction: column; gap: 10px; }
+  .post-item { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: .15s; }
+  .post-item:hover { border-color: var(--ink); }
+  .post-item.active { border-color: var(--accent); border-width: 2px; }
+  .post-meta { font-size: 12px; color: var(--accent); font-weight: 700; margin-bottom: 4px; }
+  .post-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .post-sum { font-size: 12.5px; color: var(--muted); }
+
+  .reader { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 28px 32px; }
+  .reader h2 { margin: 0 0 8px; font-size: 24px; }
+  .reader blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--accent); background: var(--bg); font-style: italic; }
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="brand-tag">VIVIAN571 · PERSONAL DIGITAL HEADQUARTERS</div>
+      <h1>Vivian · AI Agent 创作者 & 一人公司构建者</h1>
+      <p class="bio">构建有手的 AI 智能体、拆掉假性学会的自检工具、与孩子共建的初中回溯知识库，以及可复制的 One-Person Company 自动化生产流水线。</p>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat"><b>46+</b><span>GitHub 仓库</span></div>
+      <div class="hstat"><b>16</b><span>精选开源作品</span></div>
+      <div class="hstat"><b>6</b><span>深度实战专栏</span></div>
+    </div>
+  </header>
+
+  <div class="sec-head">
+    <h2 class="sec-title">01 · 开源项目与数字资产矩阵（Portfolio）</h2>
+    <div class="cat-bar" id="catBar">
+      <button class="cat-btn active" data-c="ALL">全部项目</button>
+      <button class="cat-btn" data-c="Web 工具">Web 工具</button>
+      <button class="cat-btn" data-c="知识库 & 教育">知识库 & 教育</button>
+      <button class="cat-btn" data-c="AI 创意 Skill">AI 创意 Skill</button>
+      <button class="cat-btn" data-c="一人公司 & 教程">一人公司 & 教程</button>
+      <button class="cat-btn" data-c="Agent 工程">Agent 工程</button>
+    </div>
+  </div>
+  <div class="proj-grid" id="projGrid"></div>
+
+  <div class="sec-head" style="margin-top:48px">
+    <h2 class="sec-title">02 · 专栏文章与 AI 自动化落地复盘（Blog & Notes）</h2>
+  </div>
+  <div class="blog-layout">
+    <div class="post-list" id="postList"></div>
+    <article class="reader" id="readerBox"></article>
+  </div>
+
+  <footer>
+    Vivian571 Personal Website & Blog · Powered by vivian571/my-personal-blog & next-website-v2
+  </footer>
+</div>
+
+<script>
+const PROJECTS = [{"name": "self-inquirer", "cat": "Web 工具", "desc": "拆掉假性学会 · 极简费曼压力自检单页工具（零依赖单文件 / 本地优先）", "url": "https://github.com/vivian571/self-inquirer"}, {"name": "solo-agency-dashboard", "cat": "Web 工具", "desc": "一人公司 AI 智能体驱动开发流程 2.0 看板：14天冲刺 + 11步执行手册 + PRD/Prompt 生成", "url": "https://github.com/vivian571/solo-agency-dashboard"}, {"name": "CuiMao", "cat": "Web 工具", "desc": "Big Sister is Watching You · 眼睛跟着鼠标 360° 旋转的互动视觉艺术页", "url": "https://github.com/vivian571/CuiMao"}, {"name": "junior-knowledge-base", "cat": "知识库 & 教育", "desc": "自家版初中知识库：数学（青岛版）·英语（外研版）·语文（统编版）七年级上册——知识点节点＋先修边＋错因回溯", "url": "https://github.com/vivian571/junior-knowledge-base"}, {"name": "OPC", "cat": "一人公司 & 教程", "desc": "One Person Company 一人公司系列教程 & OPC CLI 语音智能中枢", "url": "https://github.com/vivian571/OPC"}, {"name": "muse-use-cases", "cat": "知识库 & 教育", "desc": "Meta 个人 AI 智能体 Muse 的真实高价值玩法合集（收录 X/Reddit/Threads 真实省钱与自动化案例）", "url": "https://github.com/vivian571/muse-use-cases"}, {"name": "ai-assistant-use-cases", "cat": "知识库 & 教育", "desc": "个人 AI 助手真实自动化落地库：个人档案馆、每日邮件摘要、微信桥接、每日 AI 新闻短视频流水线", "url": "https://github.com/vivian571/ai-assistant-use-cases"}, {"name": "ancient-rap-battle", "cat": "AI 创意 Skill", "desc": "古人说唱 Battle：一句话做一期 AI 历史人物说唱对决视频的 Claude Code Skill（Suno + MJ + MiniMax 对口型）", "url": "https://github.com/vivian571/ancient-rap-battle"}, {"name": "sweety-handdraw-video", "cat": "AI 创意 Skill", "desc": "从主题或文章制作完整手绘讲解视频：按部位描线、逐字书写、VoiceStudio 配音", "url": "https://github.com/vivian571/sweety-handdraw-video"}, {"name": "stickman-video-director", "cat": "AI 创意 Skill", "desc": "Turn copy into rich one-minute Gemini Omni Flash stickman video prompt packages", "url": "https://github.com/vivian571/stickman-video-director"}, {"name": "ian-xiaohei-illustrations", "cat": "AI 创意 Skill", "desc": "中文小黑怪诞正文配图生成 Skill | 16:9 白底手绘 | 少量红橙蓝批注", "url": "https://github.com/vivian571/ian-xiaohei-illustrations"}, {"name": "qiushi-skill", "cat": "AI 创意 Skill", "desc": "求是 Skill —— 从教员思想中提炼出一条总原则和九大方法论工具，系统性地武装 AI 的大脑", "url": "https://github.com/vivian571/qiushi-skill"}, {"name": "jev-chat-jarvis", "cat": "Agent 工程", "desc": "聊天辅助决策工具：先看懂对方意图与风险再回复，一键填入草稿，发不发由你", "url": "https://github.com/vivian571/jev-chat-jarvis"}, {"name": "content-os-2.0", "cat": "一人公司 & 教程", "desc": "AI Content Engineering Operating System：选题、研究、写作、事实核查、多平台编译与反馈闭环", "url": "https://github.com/vivian571/content-os-2.0"}, {"name": "rea", "cat": "Agent 工程", "desc": "Reverse engineer anything with agents, from app behavior down to native binaries", "url": "https://github.com/vivian571/rea"}, {"name": "dsh-plugin-agent-workflow", "cat": "Agent 工程", "desc": "DeepSeek Harness Agent Workflow 工程化工作流", "url": "https://github.com/vivian571/dsh-plugin-agent-workflow"}];
+const ARTICLES = [{"id": "600m-ai-users", "title": "6.02 亿人已经在用 AI 了：作为剩下的“懂哥”，你真的准备好了吗？", "date": "2026-02-05", "tag": "深度思考 · 架构与人生", "summary": "生成式 AI 用户规模达到 6.02 亿。如果人生也是一个待优化的系统，面对这波高并发冲击，如何重构你的底层逻辑？", "body": "<h3>引言</h3>\n<p>看到第 57 次《中国互联网络发展状况统计报告》，我的第一反应不是欣慰，而是一种脊背发凉的危机感。<b>我国生成式 AI 用户规模达到了 6.02 亿</b>。在技术圈，我们常说“架构决定高度”，但在 11 亿网民、6 亿 AI 用户的庞大基数面前，曾经引以为傲的“技术壁垒”，正在被 AI 以指数级的速度夷为平地。</p>\n<h3>01 架构设计：给人生搭建可扩展的底层框架</h3>\n<p>真正的技术高手知道，<b>人生的第一曲线是专业技能，第二曲线才是“驾驭技术的能力”</b>。就像分布式架构中的 Load Balancer 一样，必须学会把低价值、重复性的工作卸载（Offload）给 AI，把自己的 CPU 算力留给架构设计、商业洞察和情感链接。</p>\n<blockquote>金句：就像优秀的架构设计不是为了应付现在的流量，而是为了承载未来的不确定性一样，学习 AI 不是为了现在的提效，而是为了给你的职业生涯留出足够的 Buffer。</blockquote>\n<h3>02 算法优化：用启发式搜索找到职业的最优解</h3>\n<p>用 AI 去做那 99% 的基础工作，剩下的 1%，才是你体现“差分价值”的地方。与其在错误的函数里死磕，不如换个维度去寻找全局最优。</p>\n<h3>03 性能调优：建立私域知识库</h3>\n<p>系统的瓶颈往往不在运算速度，而在 I/O。学会建立你的<b>私域知识库（Personal Knowledge Base）</b>，就像给系统加上了 Redis 缓存。不要每次遇到问题都去大海捞针，而是要让 AI 成为你的“二层脑”。</p>\n<h3>今日行动清单</h3>\n<ul>\n<li>找出你每天重复超过 3 次的工作，用 AI 脚本/工具彻底自动化它。</li>\n<li>选一个完全不懂的非技术领域，尝试用 AI 在 1 小时内掌握其核心逻辑。</li>\n<li>关掉让你焦虑的流量快讯，去读一篇真正硬核的技术论文或商业分析。</li>\n</ul>"}, {"id": "personal-archive", "title": "个人档案馆：所有产出可全文检索，一个口令就找到", "date": "2026-10", "tag": "AI 助手自动化实战", "summary": "来自 ai-assistant-use-cases 仓库的真实云服务器 + Muse 自动化落地复盘（含工具链、做法、效果与踩坑）。", "body": "<pre style='white-space:pre-wrap;font-family:inherit;line-height:1.75;margin:0'>## 个人档案馆：所有产出可全文检索，一个口令就找到\n\n**作者**：Vivian\n**日期**：2026-10-12（第一次建库）\n**AI 助手**：Muse\n**标签**：#知识管理 #检索 #归档\n\n## 场景\n\n文章、视频、研究存档、技能包越积越多，散落在各处。想找\"之前那个手绘视频的旁白\"时翻半天，灵感来了接不上。\n\n## 工具链\n\n- AI 助手：Muse（建库 + 日常检索入口）\n- 辅助工具：自研 `archive.py`（纯标准库）+ SQLite FTS5 三元组全文索引\n- 运行环境：云服务器\n\n## 做法\n\n1. 约定目录结构，产出按类型归档（视频/文章/研究/技能/播客）\n2. `archive.py build` 扫描全部文件，建全文索引——视频按旁白文本可检索\n3. 日常使用：跟 Muse 说\"在档案里搜 XX\"，它查索引返回原文位置\n4. 有新产出就重建一次索引\n\n## 效果\n\n第一次建库索引了 63 件产出。之后找任何历史产出都是一句话的事，不再靠翻文件夹碰运气。\n\n## 坑\n\n- 索引不会自己更新，有新产出必须手动重建，否则搜不到新的\n- 视频检索依赖旁白文本，没有旁白的视频进不了索引\n- 目录结构一旦定下来不要频繁改，否则索引和习惯都乱\n\n## 可复用度\n\n任何有持续产出的人都适用。`archive.py` 只有标准库依赖，换台机器直接跑。\n</pre>"}, {"id": "daily-email-digest", "title": "每天早上让 AI 读完所有未读邮件，只给我看重点", "date": "2026-10", "tag": "AI 助手自动化实战", "summary": "来自 ai-assistant-use-cases 仓库的真实云服务器 + Muse 自动化落地复盘（含工具链、做法、效果与踩坑）。", "body": "<pre style='white-space:pre-wrap;font-family:inherit;line-height:1.75;margin:0'>## 每天早上让 AI 读完所有未读邮件，只给我看重点\n\n**作者**：Vivian\n**日期**：2026-10-12（第一次跑通）\n**AI 助手**：Muse\n**标签**：#邮件 #信息过载 #自动化\n\n## 场景\n\n不常读邮件，未读越积越多。重要邮件（安全通知、付款、截止日期）淹没在简报和推广里，等想起来看时可能已经错过了。\n\n## 工具链\n\n- AI 助手：Muse（定时任务每天 09:51）\n- 辅助工具：Gmail 连接器\n- 运行环境：云服务器\n\n## 做法\n\n1. 每天早上定时扫描全部未读邮件，逐封读完\n2. 分级呈现：真人来信、安全事项、付款、截止日期、确认事项单独列；简报/推广/平台通知合并成一行\n3. 验证码类内容永不引用、永不复述\n4. 摘要发到主聊天 + 同步一份纯文本到微信，之后把这批邮件标记已读并核对未读归零\n5. 未读为 0 时保持安静，不打扰\n\n## 效果\n\n每天早上花一分钟看摘要即可。安全通知（如异地登录提醒）再也没错过。\n\n## 坑\n\n- 摘要不能假设我已经看过邮件——默认我没看，写全上下文\n- 标记已读是不可逆操作，摘要必须先发、确认送达后再标记\n- 微信同步失败时不要反复重试，说明一次原因即可\n\n## 可复用度\n\n任何邮箱重度/轻度用户都适用。分级规则（单独列 vs 合并）可按自己的邮件类型调整。\n</pre>"}, {"id": "wechat-bridge", "title": "在微信里直接指挥云端的 AI 助手", "date": "2026-10", "tag": "AI 助手自动化实战", "summary": "来自 ai-assistant-use-cases 仓库的真实云服务器 + Muse 自动化落地复盘（含工具链、做法、效果与踩坑）。", "body": "<pre style='white-space:pre-wrap;font-family:inherit;line-height:1.75;margin:0'>## 在微信里直接指挥云端的 AI 助手\n\n**作者**：Vivian\n**日期**：2026-10-12（第一次跑通）\n**AI 助手**：Muse\n**标签**：#微信 #自动化 #IM\n\n## 场景\n\nAI 助手住在云服务器上，手机不在电脑前时想让它干活，还得打开特定 App。有没有办法在微信里说句话，它就开工？\n\n## 工具链\n\n- AI 助手：Muse\n- 辅助工具：开源 wx-bot（走微信官方 iLink 通道）+ systemd 服务 + 15 分钟自愈脚本\n- 运行环境：云服务器\n\n## 做法\n\n1. 部署 wx-bot，用微信扫码登录一次，登录态保存在服务器上\n2. 配 systemd 服务 + 每 5 秒轮询的 hook，微信消息进来就唤醒 Muse 处理\n3. Muse 处理完用纯文本回复（微信里不用 Markdown）\n4. 加 15 分钟自愈：云服务器换机会把服务清掉，自愈脚本自动重装恢复，登录态不动，不用重新扫码\n\n## 效果\n\n微信里发一句话就能指挥云端 AI 干活，双向闭环 verified。服务器换机也不怕，自动恢复。\n\n## 坑\n\n- 只支持一对一私聊，不支持群聊\n- 必须你先发消息，机器人才能回（微信官方限制）\n- 连续约 10 条机器人消息无回复可能被限流\n- 凭证、登录态内容绝不进聊天记录和记忆文件\n\n## 可复用度\n\n任何想把 AI 助手接到 IM 的场景。wx-bot 是现成开源项目，换个 IM 协议思路相同：登录态持久化 + 消息轮询 + 自愈。\n</pre>"}, {"id": "supervisor-writing", "title": "把开源项目的精华技能抽出来，打包成自己的 skill", "date": "2026-10", "tag": "AI 助手自动化实战", "summary": "来自 ai-assistant-use-cases 仓库的真实云服务器 + Muse 自动化落地复盘（含工具链、做法、效果与踩坑）。", "body": "<pre style='white-space:pre-wrap;font-family:inherit;line-height:1.75;margin:0'>## 把开源项目的精华技能抽出来，打包成自己的 skill\n\n**作者**：Vivian\n**日期**：2026-10-14（第一次跑通）\n**AI 助手**：Muse\n**标签**：#技能包 #开源 #写作\n\n## 场景\n\nGitHub 上有个热门项目（HKUSTDial/Supervisor-Skills）把十年科研经验做成了 12 个 AI Skills，但它是英文学术向的。我只需要其中写作相关的 6 个，还要适配自己的文章/书稿流程，不想每次都翻原仓库。\n\n## 工具链\n\n- AI 助手：Muse\n- 辅助工具：Python 打包脚本\n- 运行环境：云服务器\n\n## 做法\n\n1. 先通读原仓库 README，确定要哪几个 skill（这次是 6 个写作相关：选题评估、深度研究、开头起草、正文写作、润色、发布前预审）\n2. 原样提取 skill 文件，不改原作者逻辑；适配自己的部分单独写一份调用说明\n3. 附上署名文件：原项目地址、commit hash、协议（CC BY-NC-SA 4.0）、使用边界\n4. 打成 zip，以后直接调用，如\"评估一下这个选题\"\"润色这段，顺便去一下 AI 味\"\n\n## 效果\n\n6 个 skill 开箱即用，调用时一句话即可。署名文件保证了协议合规。\n\n## 坑\n\n- 必须 pin 住原仓库的 commit hash，否则上游更新后你的包会静默变样\n- 原 skill 的学术假设（如 LaTeX、期刊格式）要显式声明跳过，不然会生硬套用\n- 协议限制：CC BY-NC-SA 只能个人非商业使用，商用前先看协议\n\n## 可复用度\n\n任何\"开源项目只想要其中一部分\"的场景都适用。流程固定：选 → 原样提取 → 写适配说明 → 署名 → 打包。\n</pre>"}, {"id": "daily-ai-news-video", "title": "每天自动把过去 24 小时 AI 新闻做成 60 秒竖屏视频", "date": "2026-10", "tag": "AI 助手自动化实战", "summary": "来自 ai-assistant-use-cases 仓库的真实云服务器 + Muse 自动化落地复盘（含工具链、做法、效果与踩坑）。", "body": "<pre style='white-space:pre-wrap;font-family:inherit;line-height:1.75;margin:0'>## 每天自动把过去 24 小时 AI 新闻做成 60 秒竖屏视频\n\n**作者**：Vivian\n**日期**：2026-10-11（第一次跑通）\n**AI 助手**：Muse\n**标签**：#视频 #自动化 #信息过载\n\n## 场景\n\n每天追 AI 科技新闻很花时间：英文源、中文源、GitHub 热榜，挨个刷一遍至少半小时，还容易错过真正重要的。想要一个每天早上自动送到面前的 60 秒版本。\n\n## 工具链\n\n- AI 助手：Muse（定时任务每天 08:51 自动运行）\n- 辅助工具：自研流水线（搜索 → 筛选 → 写旁白 → TTS 配音 → 竖屏合成）\n- 运行环境：云服务器\n\n## 做法\n\n1. 定时任务每天早上触发，收集过去 24 小时中英文 AI 新闻\n2. 筛选标准：够格进视频的只要 3 条——有真实来源、可验证、不凑数；不够 3 条就 2 条新闻 + 1 条深评\n3. 按固定结构生成：3 秒强钩子 + 新闻 + 结尾引评论\n4. TTS 配音 + 720×1280 竖屏合成，约 60 秒，配好可直接发布的文案一起交付\n\n## 效果\n\n每天早上收到一条 60 秒视频 + 发布文案，连续稳定产出。筛选标准保证了不注水。\n\n## 坑\n\n- 没有 3 条够格新闻的日子硬凑 3 条会注水——规则里明确允许 2+1\n- TTS 对连续英文复合词可能卡顿，旁白里要拆开写\n- 热点判断依赖搜索源质量，源不行后面全错\n\n## 可复用度\n\n换领域（如财经新闻、行业动态）只需改搜索关键词和筛选标准，流水线结构直接复用。\n</pre>"}];
+
+let curCat = 'ALL';
+let curPost = ARTICLES[0].id;
+
+function renderProjects() {
+  const list = curCat === 'ALL' ? PROJECTS : PROJECTS.filter(p => p.cat === curCat);
+  document.getElementById('projGrid').innerHTML = list.map(p => `
+    <div class="proj-card">
+      <div>
+        <span class="proj-cat">${p.cat}</span>
+        <h3 class="proj-name">${p.name}</h3>
+        <p class="proj-desc">${p.desc}</p>
+      </div>
+      <a class="proj-link" href="${p.url}" target="_blank" rel="noopener">GitHub 仓库 ↗</a>
+    </div>
+  `).join('');
+}
+
+function renderBlog() {
+  const listEl = document.getElementById('postList');
+  listEl.innerHTML = ARTICLES.map(a => `
+    <div class="post-item ${a.id === curPost ? 'active' : ''}" data-id="${a.id}">
+      <div class="post-meta">${a.date} · ${a.tag}</div>
+      <div class="post-title">${a.title}</div>
+      <div class="post-sum">${a.summary}</div>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('.post-item').forEach(el => {
+    el.addEventListener('click', () => {
+      curPost = el.dataset.id;
+      renderBlog();
+    });
+  });
+
+  const post = ARTICLES.find(a => a.id === curPost) || ARTICLES[0];
+  document.getElementById('readerBox').innerHTML = `
+    <div class="post-meta">${post.date} · ${post.tag}</div>
+    <h2>${post.title}</h2>
+    <hr style="border:none;border-top:1px solid var(--line);margin:14px 0 20px" />
+    <div>${post.body}</div>
+  `;
+}
+
+document.querySelectorAll('.cat-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    curCat = btn.dataset.c;
+    renderProjects();
+  });
+});
+
+renderProjects();
+renderBlog();
+</script>
+</body>
+</html>

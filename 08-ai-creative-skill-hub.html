@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 创意工作台 · Vivian571 Skill Hub & Prompt Compiler</title>
+<style>
+  :root {
+    --bg: #0c0d12;
+    --panel: #141720;
+    --panel-2: #1b1f2c;
+    --border: #282e40;
+    --text: #eef0f7;
+    --muted: #8e96aa;
+    --accent: #f97316;
+    --accent-2: #38bdf8;
+    --ok: #22c55e;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font: 14px/1.6 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 1260px; margin: 0 auto; padding: 28px 20px 72px; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;
+    border-bottom: 1px solid var(--border); padding-bottom: 18px; margin-bottom: 22px;
+  }
+  .tag { font: 700 12px var(--mono); color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
+  h1 { margin: 4px 0 4px; font-size: 26px; font-weight: 800; }
+  .sub { color: var(--muted); font-size: 13.5px; }
+
+  .skill-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 22px; }
+  .skill-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px;
+    cursor: pointer; transition: .15s;
+  }
+  .skill-card:hover { border-color: var(--muted); transform: translateY(-1px); }
+  .skill-card.active { border-color: var(--accent); background: var(--panel-2); }
+  .skill-repo { font: 600 12px var(--mono); color: var(--accent); margin-bottom: 4px; }
+  .skill-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .skill-desc { font-size: 12px; color: var(--muted); line-height: 1.45; }
+
+  .workspace { display: grid; grid-template-columns: 420px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 920px) { .workspace { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .panel-title { font-size: 16px; font-weight: 700; margin: 0 0 14px; display: flex; justify-content: space-between; align-items: center; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12.5px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 9px; padding: 10px 12px; font-size: 14px; font-family: inherit; outline: none;
+  }
+  .field textarea { min-height: 92px; resize: vertical; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .btn {
+    border: 0; border-radius: 9px; padding: 11px 18px; font-size: 14px; font-weight: 700; cursor: pointer;
+    background: var(--accent); color: #160a02; transition: .15s;
+  }
+  .btn:hover { opacity: 0.92; }
+  .btn-ghost { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); font-weight: 600; }
+
+  .out-block {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .out-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .out-title { font: 700 12.5px var(--mono); color: var(--accent-2); text-transform: uppercase; }
+  .copy-mini { background: var(--bg); border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .copy-mini:hover { color: var(--text); border-color: var(--accent-2); }
+  pre.out-code {
+    margin: 0; white-space: pre-wrap; word-break: break-word;
+    font: 13px/1.65 var(--mono); color: var(--text);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="tag">TIER 4 · AI CREATIVE SKILL STUDIO</div>
+      <h1>AI 创意工作台 · Skill 市场与可视化编译器</h1>
+      <div class="sub">把 5 个高星开源 Skill 变成零门槛在线生产力工具：填一句话，直接生成可复制到 Suno / Midjourney / Gemini / Claude 的全套分步制作包。</div>
+    </div>
+  </header>
+
+  <div class="skill-tabs" id="skillTabs"></div>
+
+  <div class="workspace">
+    <div class="panel" id="formPanel"></div>
+    <div class="panel">
+      <div class="panel-title">
+        <span id="outHeaderTitle">编译结果（Production Package）</span>
+        <button class="copy-mini" id="copyAllBtn">一键复制全部</button>
+      </div>
+      <div id="outputArea"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SKILLS = [
+  {
+    id: 'ancient-rap-battle',
+    repo: 'vivian571/ancient-rap-battle',
+    name: '🎤 古人说唱 Battle 生成器',
+    desc: '一句话做一期 AI 历史人物说唱对决视频（写词 + Suno 三栏提示词 + Midjourney 8张定妆 + 35镜头对口型分镜表）',
+    fields: [
+      { key: 'fighterA', label: '正方人物（先手）', type: 'text', default: '周瑜（正史视角：赤壁真统帅、精通音律）' },
+      { key: 'fighterB', label: '反方人物（后手反杀）', type: 'text', default: '诸葛亮（演义视角：草船借箭、三气周瑜）' },
+      { key: 'beatStyle', label: '伴奏曲风（Suno Style）', type: 'select', options: ['Boom Bap 古风琵琶 Trap (94 BPM)', '国潮重低音 Drill + 战鼓 (140 BPM)', 'Jazz Hip-Hop 折扇书生风 (90 BPM)'], default: 'Boom Bap 古风琵琶 Trap (94 BPM)' },
+      { key: 'coreConflict', label: '核心交锋典故 / 槽点', type: 'textarea', default: '周瑜笑诸葛亮在《三国志》里只会搞后勤，借东风全是小说家编的；诸葛亮反嘲周瑜气量狭小、赔了夫人又折兵。' }
+    ],
+    compile: (v) => [
+      {
+        title: 'STEP 1 · 对决歌词（一句一典故，后手接话反杀）',
+        content: `[Round 1 - ${v.fighterA}]
+翻开《三国志》陈寿写的字，赤壁火烧曹军到底是谁的名字？
+羽扇纶巾不过是罗贯中给你加的戏，我统领三军破曹时你在隆中耕地！
+顾曲周郎听弦知意，你借的哪门子东风不过是冬日江上的季风期！
+
+[Round 2 - ${v.fighterB}（接原话反杀）]
+季风期我也算得准天时，总好过有人被自己脾气气死在巴丘城里！
+你说陈寿写正史，那荆州借了不还怎么成了你东吴千古的心病？
+天下人只记草船借箭三气周郎，赔了夫人又折兵才是你留给后世的绝唱！`
+      },
+      {
+        title: 'STEP 2 · Suno 音乐生成三栏提示词',
+        content: `【Style of Music】Chinese Classical Pipa + Hard ${v.beatStyle}, Aggressive Male Rap Duet, Distinct Dual Vocal Timbres, Crisp Snare, Cinematic Battle Atmosphere
+【Title】${v.fighterA.split('（')[0]} VS ${v.fighterB.split('（')[0]}：正史与演义之战
+【Voice Separation Tip】生成后使用 UVR5 提取人声，将先手升调 +1 semitone（清亮武将音），后手降调 -1.5 semitones（沉稳谋士音）。`
+      },
+      {
+        title: 'STEP 3 · Midjourney 8张定妆照与 MiniMax 对口型分镜表',
+        content: `/imagine prompt: Chinese historical figure ${v.fighterA.split('（')[0]}, wearing underground hip-hop oversized brocade robe + silver chain, holding a microphone in ancient war tent, dramatic rim lighting, 85mm portrait, --ar 9:16 --v 6.1
+
+/imagine prompt: Chinese historical figure ${v.fighterB.split('（')[0]}, holding feather fan and vintage studio condenser mic, smug expression, neon ink wash background, cinematic lighting, --ar 9:16 --v 6.1
+
+【MiniMax H3 对口型镜头指令】
+镜头 01 (00:00-00:04)：${v.fighterA.split('（')[0]} 正面近景，手指镜头挑衅，嘴型严格对齐第一句重拍。
+镜头 02 (00:04-00:08)：切 ${v.fighterB.split('（')[0]} 侧脸冷笑反应镜头（Reaction Shot），摇动羽扇。`
+      }
+    ]
+  },
+  {
+    id: 'stickman-video-director',
+    repo: 'vivian571/stickman-video-director',
+    name: '🏃 火柴人视频导演 (Stickman Director)',
+    desc: '将一段文案一键转化为英文配音稿、视觉导演分镜计划与 Gemini Omni Flash 60秒动态火柴人提示词包',
+    fields: [
+      { key: 'topic', label: '视频核心主题 / 文案构想', type: 'textarea', default: '为什么你学了那么多教程还是写不出代码？因为你一直在看别人游泳（Tutorial Hell），只有把教程关掉亲手报错 100 次才能真正学会。' },
+      { key: 'duration', label: '目标时长（每段 10 秒）', type: 'select', options: ['30 秒（3 段高密度）', '60 秒（6 段标准叙事）'], default: '30 秒（3 段高密度）' },
+      { key: 'style', label: '火柴人视觉风格', type: 'select', options: ['High-Contrast Minimalist Black & White + Red Accent', 'Warm Paper Notebook Sketch Style', 'Dark Mode Neon Chalkboard Stickman'], default: 'High-Contrast Minimalist Black & White + Red Accent' }
+    ],
+    compile: (v) => [
+      {
+        title: 'STEP 1 · 确认版英文旁白稿 (Confirmed Voiceover Script)',
+        content: `[00:00 - 00:10] You have watched fifty hours of coding tutorials, yet the moment you open a blank editor, your mind goes completely empty.
+[00:10 - 00:20] That is Tutorial Hell: watching someone swim on a screen never teaches your muscles how to float in deep water.
+[00:20 - 00:30] Close the video right now, build something ugly that breaks, and let real error messages wire your brain.`
+      },
+      {
+        title: 'STEP 2 · Gemini Omni Flash 逐段视频生成 Prompt 包',
+        content: `【Segment 01 (0-10s) Prompt】
+Style: ${v.style}. A minimalist stickman sits in front of a giant glowing tower of video play buttons, nodding happily with a fake "100% Learned" progress bar floating above its head. Suddenly, the screen cuts to a single blinking cursor on an empty white canvas, and the stickman shrinks in panic.
+
+【Segment 02 (10-20s) Prompt】
+Style: ${v.style}. The stickman stands on dry land taking detailed notes while watching a TV screen of another stickman swimming. When pushed into a red ocean labeled "Real Project", the notebook dissolves instantly.
+
+【Segment 03 (20-30s) Prompt】
+Style: ${v.style}. The stickman smashes the TV screen, stacks red error bricks into a staircase, and climbs to the top holding a glowing wrench.`
+      }
+    ]
+  },
+  {
+    id: 'sweety-handdraw-video',
+    repo: 'vivian571/sweety-handdraw-video',
+    name: '✍️ 手绘口播视频编排器 (Sweety Handdraw)',
+    desc: '按部位描线、逐字手写字幕、6款写实手部模型选择与 VoiceStudio 旁白时间轴对齐方案',
+    fields: [
+      { key: 'story', label: '故事或观点主题', type: 'textarea', default: '《那条死于愤怒的蛇》：一条蛇被锯子刮伤，愤怒地回头死死缠住锯子想要报复，结果越用力自己被割得越深。真正毁掉你的往往不是最初的那道小伤，而是你不肯放手的愤怒。' },
+      { key: 'hand', label: '手绘手臂模具（assets/hands/catalog.json）', type: 'select', options: ['waner-brush（上官婉儿灵感毛笔）', 'navy（深蓝袖马克笔）', 'diamond-woman（白皙柔粉碎钻长甲）', 'teacher-pen（白衬衫中性笔）', 'cardigan-fountain（针织袖钢笔）', 'pen-only（仅画笔无手臂）'], default: 'waner-brush（上官婉儿灵感毛笔）' },
+      { key: 'penText', label: '笔杆定制文字（最多16字符，可选）', type: 'text', default: 'Vivian Studio' }
+    ],
+    compile: (v) => [
+      {
+        title: 'STEP 1 · 按部位描线分镜序列 (Stroke-by-Stroke Layers)',
+        content: `手部模具：${v.hand}
+笔杆铭文：${v.penText || '（无）'}
+
+[分镜 01 · 00:00-00:12]
+- 旁白：「深夜的木匠铺里，一条蛇不小心蹭到了地上冰冷的钢锯。」
+- 描线顺序：① 先画木桌边缘与月光冷调底色 → ② 逐齿勾勒锋利的钢锯轮廓 → ③ 画出蛇身掠过锯齿时渗出的一滴朱砂红血珠。
+
+[分镜 02 · 00:12-00:28]
+- 旁白：「它以为锯子在攻击它，暴怒之下用尽全身力气死死缠住锯条。」
+- 描线顺序：① 快速重笔画出盘绕收紧的蛇身弧线 → ② 叠加红色张力放射线 → ③ 逐字手写黑边字幕：『用力越猛，伤口越深』。`
+      },
+      {
+        title: 'STEP 2 · 本地渲染命令配置 (JSON Manifest)',
+        content: JSON.stringify({
+          version: "1.2.3",
+          hand: { model: v.hand.split('（')[0], pen_text: v.penText.slice(0, 16) },
+          subtitle: { style: "black-outline-clean", sync_mode: "audio-first" },
+          narration: v.story
+        }, null, 2)
+      }
+    ]
+  },
+  {
+    id: 'ian-xiaohei-illustrations',
+    repo: 'vivian571/ian-xiaohei-illustrations',
+    name: '🖤 小黑怪诞正文配图 (Ian Xiaohei)',
+    desc: '把中文文章里的核心判断、流程或隐喻变成 16:9 纯白底手绘 + 少量红橙蓝中文批注的小黑 IP 解释图',
+    fields: [
+      { key: 'article', label: '输入文章段落或核心判断', type: 'textarea', default: '很多人做知识管理只是把文章从微信收藏搬运到 Notion 里吃灰。看似搭建了豪华的宫殿，实际上大脑一次都没有调用过，这叫“数字仓鼠症”。' },
+      { key: 'pattern', label: '构图结构类型（composition-patterns）', type: 'select', options: ['荒诞流水线（输入-假动作-吃灰输出）', '表里反差对比（表面豪华 vs 内部空转）', '断点悬崖（缺少关键一步）'], default: '荒诞流水线（输入-假动作-吃灰输出）' }
+    ],
+    compile: (v) => [
+      {
+        title: 'STEP 1 · 认知锚点提炼与配图策略 (Shot List)',
+        content: `核心判断：收藏≠学会，未经消化的搬运只是“数字仓鼠的体力劳动”。
+构图模式：${v.pattern}
+小黑核心动作：小黑满头大汗开着叉车把发光的“干货金砖”运进贴满华丽标签的冷库，转身锁门后再也不看，而旁边代表“大脑”的锅炉房正因为没有燃料而结冰。`
+      },
+      {
+        title: 'STEP 2 · 16:9 纯白手绘生图 Prompt (Prompt Template)',
+        content: `A 16:9 horizontal hand-drawn editorial illustration on a pure solid white background (#FFFFFF). Minimalist grotesque ink-line style featuring "Xiaohei" (a solid black silhouette figure with two tiny white dot eyes, thin stick legs, and a deadpan blank expression).
+
+Scene: Xiaohei is earnestly pushing a heavy wheelbarrow overflowing with folders labeled in handwritten Chinese "收藏夹", dumping them into a giant locked vault labeled "Notion 豪华陵园" (in orange ink). Meanwhile, on the right side, a small furnace labeled "真实产出" (in blue ink) is completely empty and covered in cobwebs. Red hand-drawn arrow pointing to the locked vault with annotation: "搬运工的自我感动". Clean white space, sketchy black ink lines, sparse red/orange/blue accents, no gradients, no 3D shading.`
+      }
+    ]
+  },
+  {
+    id: 'qiushi-skill',
+    repo: 'vivian571/qiushi-skill',
+    name: '🔴 求是 Skill · 九大思想武器分析台',
+    desc: '用「实事求是」总原则与九大方法论工具（矛盾分析、调查研究、集中兵力、持久战略等）解剖复杂问题',
+    fields: [
+      { key: 'problem', label: '你当前面临的复杂工程 / 创业 / 决策难题', type: 'textarea', default: '手头有 10 个开源项目想法，同时还在做自媒体日更和写代码，感觉每天忙得团团转，但没有一个项目真正做出复利和商业闭环。' },
+      { key: 'weapon', label: '主攻思想武器', type: 'select', options: ['⚔️ 矛盾分析法（抓主要矛盾）+ 🎯 集中兵力（伤其十指不如断其一指）', '🔎 调查研究（没有调查就没有发言权）+ 🔄 实践认识论', '⏳ 持久战略 + 🔥 星火燎原（建立根据地，不做流寇）'], default: '⚔️ 矛盾分析法（抓主要矛盾）+ 🎯 集中兵力（伤其十指不如断其一指）' }
+    ],
+    compile: (v) => [
+      {
+        title: '第一层 · 矛盾分析法（识别主要矛盾与次要矛盾）',
+        content: `【当前问题诊断】
+“同时推进 10 个项目却无一闭环”是典型的平均使用力量（犯了军事上的分兵主义）。
+- 主要矛盾：缺少一个能持续产生现金流或核心口碑的「根据地产品」与「有限的个人精力」之间的矛盾。
+- 次要矛盾：其余 9 个项目的代码完善度、多平台排版细节。
+- 原著准绳：「捉住了这个主要矛盾，一切问题就迎刃而解了。」（《矛盾论》）`
+      },
+      {
+        title: '第二层 · 集中兵力 & 星火燎原（可执行的歼灭战方案）',
+        content: `【行动纲领：伤其十指，不如断其一指】
+1. 建立根据地（不做流寇）：立即冻结其余 8 个处于“骨架期”的支线项目，将个人主页（Portfolio）作为流量根据地，把最能体现复利的 1 个核心项目作为主攻点。
+2. 集中优势兵力：未来 14 天内，100% 的开发时间只投向这 1 个主攻项目的闭环（上线 → 真实用户反馈 → 迭代）。
+3. 实践—认识—再实践：上线第 1 天先拿 10 个真实用户的毒舌反馈，用客观事实修正主观想象。`
+      }
+    ]
+  }
+];
+
+let curSkill = SKILLS[0];
+
+function renderTabs() {
+  document.getElementById('skillTabs').innerHTML = SKILLS.map(s => `
+    <div class="skill-card ${s.id === curSkill.id ? 'active' : ''}" data-id="${s.id}">
+      <div class="skill-repo">${s.repo}</div>
+      <div class="skill-name">${s.name}</div>
+      <div class="skill-desc">${s.desc}</div>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.skill-card').forEach(el => {
+    el.addEventListener('click', () => {
+      curSkill = SKILLS.find(x => x.id === el.dataset.id);
+      renderTabs();
+      renderForm();
+      runCompile();
+    });
+  });
+}
+
+function renderForm() {
+  const fp = document.getElementById('formPanel');
+  fp.innerHTML = `
+    <div class="panel-title"><span>参数配置 · ${curSkill.name}</span></div>
+    ${curSkill.fields.map(f => `
+      <div class="field">
+        <label>${f.label}</label>
+        ${f.type === 'textarea'
+          ? `<textarea id="f_${f.key}">${f.default}</textarea>`
+          : f.type === 'select'
+            ? `<select id="f_${f.key}">${f.options.map(o => `<option value="${o}" ${o===f.default?'selected':''}>${o}</option>`).join('')}</select>`
+            : `<input type="text" id="f_${f.key}" value="${f.default}" />`
+        }
+      </div>
+    `).join('')}
+    <div class="btn-row">
+      <button class="btn" id="compileBtn">⚡ 立即编译生成制作包</button>
+    </div>
+  `;
+  document.getElementById('compileBtn').addEventListener('click', runCompile);
+  fp.querySelectorAll('input, textarea, select').forEach(inp => {
+    inp.addEventListener('input', runCompile);
+  });
+}
+
+function getValues() {
+  const vals = {};
+  curSkill.fields.forEach(f => {
+    const el = document.getElementById('f_' + f.key);
+    vals[f.key] = el ? el.value : f.default;
+  });
+  return vals;
+}
+
+function runCompile() {
+  const vals = getValues();
+  const blocks = curSkill.compile(vals);
+  const out = document.getElementById('outputArea');
+  out.innerHTML = blocks.map((b, idx) => `
+    <div class="out-block">
+      <div class="out-head">
+        <span class="out-title">${b.title}</span>
+        <button class="copy-mini" data-idx="${idx}">复制本段</button>
+      </div>
+      <pre class="out-code" id="code_${idx}"></pre>
+    </div>
+  `).join('');
+
+  blocks.forEach((b, idx) => {
+    document.getElementById('code_' + idx).textContent = b.content;
+  });
+
+  out.querySelectorAll('.copy-mini').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const txt = blocks[+btn.dataset.idx].content;
+      navigator.clipboard.writeText(txt);
+      btn.textContent = '✓ 已复制';
+      setTimeout(() => btn.textContent = '复制本段', 1200);
+    });
+  });
+
+  document.getElementById('copyAllBtn').onclick = () => {
+    const allTxt = blocks.map(b => `=== ${b.title} ===
+${b.content}`).join('
+
+');
+    navigator.clipboard.writeText(allTxt);
+    const b = document.getElementById('copyAllBtn');
+    b.textContent = '✓ 已复制全部';
+    setTimeout(() => b.textContent = '一键复制全部', 1500);
+  };
+}
+
+renderTabs();
+renderForm();
+runCompile();
+</script>
+</body>
+</html>
